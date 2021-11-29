@@ -2,6 +2,7 @@ package com.jwork.app.world;
 
 import java.util.Random;
 
+import com.jwork.app.map.MapGenerator;
 import com.jwork.app.maze.*;
 
 /*
@@ -80,9 +81,31 @@ public class WorldBuilder {
                 }
             }
         }
-        tiles[0][0] = Tile.BEGINNING;
-        // tiles[0][1] = Tile.ENDING;
-        tiles[width-1][height-1] = Tile.ENDING;
+        return this;
+    }
+
+    private WorldBuilder mapTiles(String mapFile) {
+        MapGenerator mapGenerator = new MapGenerator(mapFile);
+        mapGenerator.generateMap();
+        this.height = mapGenerator.getHeight();
+        this.width = mapGenerator.getWidth();
+        this.tiles = new Tile[width][height];
+        int [][] map = mapGenerator.getMap();
+        for(int x = 0; x < width; x++) {
+            for(int y = 0; y < height; y++) {
+                switch (map[y][x]) {
+                    case 0:
+                        tiles[x][y] = Tile.FLOOR;
+                        break;
+                    case 1:
+                        tiles[x][y] = Tile.WALL;
+                        break;
+                    default:
+                        tiles[x][y] = Tile.FLOOR;
+                        break;
+                }
+            }
+        }
         return this;
     }
 
@@ -129,5 +152,9 @@ public class WorldBuilder {
 
     public WorldBuilder makeMaze() {
         return mazeTiles();
+    }
+
+    public WorldBuilder makeMap(String mapFile) {
+        return mapTiles(mapFile);
     }
 }

@@ -35,14 +35,18 @@ public class PlayScreen implements Screen {
     private Creature player;
     private int screenWidth;
     private int screenHeight;
+    private int worldWidth;
+    private int worldHeight;
     private List<String> messages;
     private List<String> oldMessages;
     private int maxKeysNum;
-    private MazeSolution solution;
+    // private MazeSolution solution;
 
     public PlayScreen() {
         this.screenWidth = 40;
         this.screenHeight = 40;
+        this.worldWidth = 50;
+        this.worldHeight = 50;
         this.maxKeysNum = 10;
         createWorld();
         this.messages = new ArrayList<String>();
@@ -51,23 +55,23 @@ public class PlayScreen implements Screen {
         CreatureFactory creatureFactory = new CreatureFactory(this.world);
         createCreatures(creatureFactory);
 
-        int [][] maze = new int[screenWidth][screenHeight];
-        for (int i = 0; i < screenHeight; i++) {
-            for (int j = 0; j < screenWidth; j++) {
-                if (world.tile(j, i).isGround()) {
-                    maze[i][j] = 1;
-                } else {
-                    maze[i][j] = 0;
-                }
-            }
-        }
-        for (Creature c: world.getCreatures()) {
-            if (c.glyph() == (char)13) {
-                maze[c.y()][c.x()] = 2;
-            }
-        }
-        this.solution = new MazeSolution(maze, maxKeysNum);
-        this.solution.calculate();
+        // int [][] maze = new int[worldWidth][worldHeight];
+        // for (int i = 0; i < worldHeight; i++) {
+        //     for (int j = 0; j < worldWidth; j++) {
+        //         if (world.tile(j, i).isGround()) {
+        //             maze[i][j] = 1;
+        //         } else {
+        //             maze[i][j] = 0;
+        //         }
+        //     }
+        // }
+        // for (Creature c: world.getCreatures()) {
+        //     if (c.glyph() == (char)13) {
+        //         maze[c.y()][c.x()] = 2;
+        //     }
+        // }
+        // this.solution = new MazeSolution(maze, maxKeysNum);
+        // this.solution.calculate();
     }
 
     private void createCreatures(CreatureFactory creatureFactory) {
@@ -80,8 +84,11 @@ public class PlayScreen implements Screen {
     }
 
     private void createWorld() {
-        // world = new WorldBuilder(10, 10).makeMaze().build();
-        world = new WorldBuilder(screenWidth, screenHeight).makeMaze().build();
+        // world = new WorldBuilder(screenWidth, screenHeight).makeMaze().build();
+        world = new WorldBuilder(worldWidth, worldHeight).makeMap("map/map1.csv").build();
+        this.worldHeight = world.height();
+        this.worldWidth = world.width();
+        // world = new WorldBuilder(worldWidth, worldHeight).makeMaze().build();
     }
 
     private void displayTiles(AsciiPanel terminal, int left, int top) {
@@ -143,40 +150,40 @@ public class PlayScreen implements Screen {
         switch (key.getKeyCode()) {
             case KeyEvent.VK_LEFT:
                 if (player.moveBy(-1, 0)) {
-                    solution.checkStep(player.x(), player.y(), -1, 0);
+                    // solution.checkStep(player.x(), player.y(), -1, 0);
                 }
                 break;
             case KeyEvent.VK_RIGHT:
                 if (player.moveBy(1, 0)) {
-                    solution.checkStep(player.x(), player.y(), 1, 0);
+                    // solution.checkStep(player.x(), player.y(), 1, 0);
                 }
                 break;
             case KeyEvent.VK_UP:
                 if (player.moveBy(0, -1)) {
-                    solution.checkStep(player.x(), player.y(), 0, -1);
+                    // solution.checkStep(player.x(), player.y(), 0, -1);
                 }
                 break;
             case KeyEvent.VK_DOWN:
                 if (player.moveBy(0, 1)) {
-                    solution.checkStep(player.x(), player.y(), 0, 1);
+                    // solution.checkStep(player.x(), player.y(), 0, 1);
                 }
                 break;
             case KeyEvent.VK_ENTER:
-                int step = solution.getStep(player.x(), player.y());
-                switch(step) {
-                    case 0:
-                        player.moveBy(0, -1);
-                        break;
-                    case 1:
-                        player.moveBy(0, 1);
-                        break;
-                    case 2:
-                        player.moveBy(-1, 0);
-                        break;
-                    case 3:
-                        player.moveBy(1, 0);
-                        break;
-                }
+                // int step = solution.getStep(player.x(), player.y());
+                // switch(step) {
+                //     case 0:
+                //         player.moveBy(0, -1);
+                //         break;
+                //     case 1:
+                //         player.moveBy(0, 1);
+                //         break;
+                //     case 2:
+                //         player.moveBy(-1, 0);
+                //         break;
+                //     case 3:
+                //         player.moveBy(1, 0);
+                //         break;
+                // }
                 break;
         }
         if (player.win()) {

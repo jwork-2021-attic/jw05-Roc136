@@ -23,7 +23,7 @@ import java.awt.Color;
  *
  * @author Aeranythe Echosong
  */
-public class Creature {
+public class Creature extends Thread {
 
     protected World world;
 
@@ -125,7 +125,7 @@ public class Creature {
         Creature other = world.creature(x + mx, y + my);
 
         if (other == null) {
-            setFootPrints(mx, my);
+            // setFootPrints(mx, my);
             return ai.onEnter(x + mx, y + my, world.tile(x + mx, y + my));
         } else {
             attack(other);
@@ -180,6 +180,8 @@ public class Creature {
         ai.onNotify(String.format(message, params));
     }
 
+    protected int actionTime;
+
     public Creature(World world, char glyph, Color color, int maxHP, int attack, int defense, int visionRadius) {
         this.world = world;
         this.glyph = glyph;
@@ -191,5 +193,19 @@ public class Creature {
         this.visionRadius = visionRadius;
         this.ai = null;
         this.score = 0;
+        this.actionTime = 500;
+    }
+
+    @Override
+    public void run() {
+        try {
+            while(true) {
+                update();
+                Thread.sleep(actionTime);
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

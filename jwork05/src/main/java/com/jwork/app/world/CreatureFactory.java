@@ -55,6 +55,13 @@ public class CreatureFactory {
         return key;
     }
 
+    public Creature newMonster() {
+        Creature monster = new Monster(this.world, (char)13, AsciiPanel.yellow, 10, 0, 0, 0);
+        world.addAtEmptyLocation(monster);
+        new MonsterAI(monster);
+        return monster;
+    }
+
     public Creature newFungus(int x, int y) {
         Creature fungus = new Creature(this.world, (char)3, AsciiPanel.green, 10, 0, 0, 0);
         if (world.addAtCertainLocation(fungus, x, y)) {

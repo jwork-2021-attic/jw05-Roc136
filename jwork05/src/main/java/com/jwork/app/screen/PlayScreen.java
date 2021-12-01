@@ -19,11 +19,13 @@ package com.jwork.app.screen;
 
 import com.jwork.app.world.*;
 import com.jwork.app.asciiPanel.AsciiPanel;
-import com.jwork.app.maze.MazeSolution;
+// import com.jwork.app.maze.MazeSolution;
 
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  *
@@ -39,6 +41,7 @@ public class PlayScreen implements Screen {
     private int worldHeight;
     private List<String> messages;
     private List<String> oldMessages;
+    private ExecutorService exec;
     private int maxKeysNum;
     // private MazeSolution solution;
 
@@ -52,8 +55,9 @@ public class PlayScreen implements Screen {
         this.messages = new ArrayList<String>();
         this.oldMessages = new ArrayList<String>();
 
+        this.exec = Executors.newCachedThreadPool();
         CreatureFactory creatureFactory = new CreatureFactory(this.world);
-        createCreatures(creatureFactory);
+        createCreatures(this.exec, creatureFactory);
 
         // int [][] maze = new int[worldWidth][worldHeight];
         // for (int i = 0; i < worldHeight; i++) {
@@ -74,11 +78,13 @@ public class PlayScreen implements Screen {
         // this.solution.calculate();
     }
 
-    private void createCreatures(CreatureFactory creatureFactory) {
+    private void createCreatures(ExecutorService exec, CreatureFactory creatureFactory) {
         if (world != null) {
             this.player = creatureFactory.newPlayer(this.messages, maxKeysNum);
+            exec.submit(player);
             for (int i = 0; i < maxKeysNum; i++) {
-                creatureFactory.newKey();
+                Creature monster = creatureFactory.newMonster();
+                exec.submit(monster);
             }
         }
     }
@@ -117,7 +123,7 @@ public class PlayScreen implements Screen {
             }
         }
         // Creatures can choose their next action now
-        world.update();
+        // world.update();
     }
 
     private void displayMessages(AsciiPanel terminal, List<String> messages) {

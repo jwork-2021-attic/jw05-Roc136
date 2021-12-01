@@ -32,6 +32,7 @@ public class PlayerAI extends CreatureAI {
         this.messages = messages;
     }
 
+    @Override
     public boolean onEnter(int x, int y, Tile tile) {
         if (tile.isGround()) {
             creature.setX(x);
@@ -45,7 +46,13 @@ public class PlayerAI extends CreatureAI {
         }
     }
 
+    @Override
     public void onNotify(String message) {
         this.messages.add(message);
+    }
+
+    @Override
+    public void onUpdate() {
+        System.out.println("(Player)onUpdate");
     }
 }

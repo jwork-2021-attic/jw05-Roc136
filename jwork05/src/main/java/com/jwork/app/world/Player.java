@@ -20,7 +20,7 @@ public class Player extends Creature {
         if (other != null) {
             pick(other);
         }
-        setFootPrints(mx, my);
+        // setFootPrints(mx, my);
         return ai.onEnter(x + mx, y + my, world.tile(x + mx, y + my));
     }
 

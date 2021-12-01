@@ -7,6 +7,7 @@ import javax.swing.JFrame;
 
 import com.jwork.app.asciiPanel.AsciiFont;
 import com.jwork.app.asciiPanel.AsciiPanel;
+import com.jwork.app.screen.Flasher;
 import com.jwork.app.screen.Screen;
 import com.jwork.app.screen.StartScreen;
 
@@ -42,7 +43,7 @@ public class App extends JFrame implements KeyListener {
      */
     public void keyPressed(KeyEvent e) {
         screen = screen.respondToUserInput(e);
-        repaint();
+        // repaint();
     }
 
     /**
@@ -61,6 +62,8 @@ public class App extends JFrame implements KeyListener {
 
     public static void main(String[] args) {
         App app = new App();
+        Thread t = new Thread(new Flasher(app, 60));
+        t.start();
         app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         app.setVisible(true);
     }

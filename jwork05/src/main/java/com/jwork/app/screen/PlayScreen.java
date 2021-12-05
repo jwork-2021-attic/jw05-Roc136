@@ -18,9 +18,11 @@
 package com.jwork.app.screen;
 
 import com.jwork.app.world.*;
+import com.jwork.app.App;
 import com.jwork.app.asciiPanel.AsciiPanel;
 // import com.jwork.app.maze.MazeSolution;
 
+import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,15 +44,17 @@ public class PlayScreen implements Screen {
     private List<String> messages;
     private List<String> oldMessages;
     private ExecutorService exec;
-    private int maxKeysNum;
+    private int screenFrameTop;
+    private int screenFrameLeft;
     // private MazeSolution solution;
 
     public PlayScreen() {
-        this.screenWidth = 40;
-        this.screenHeight = 40;
-        this.worldWidth = 50;
-        this.worldHeight = 50;
-        this.maxKeysNum = 10;
+        this.screenFrameLeft = 1;
+        this.screenFrameTop = 9;
+        this.screenWidth = App.terminalWidth - 16;
+        this.screenHeight = App.terminalHeight - screenFrameTop - 1;
+        this.worldWidth = screenWidth;
+        this.worldHeight = screenHeight;
         createWorld();
         this.messages = new ArrayList<String>();
         this.oldMessages = new ArrayList<String>();
@@ -80,9 +84,9 @@ public class PlayScreen implements Screen {
 
     private void createCreatures(ExecutorService exec, CreatureFactory creatureFactory) {
         if (world != null) {
-            this.player = creatureFactory.newPlayer(this.messages, maxKeysNum);
+            this.player = creatureFactory.newPlayer(this.messages);
             exec.submit(player);
-            for (int i = 0; i < maxKeysNum; i++) {
+            for (int i = 0; i < 10; i++) {
                 Creature monster = creatureFactory.newMonster();
                 exec.submit(monster);
             }
@@ -109,7 +113,7 @@ public class PlayScreen implements Screen {
                 // } else {
                 //     terminal.write(world.glyph(wx, wy), x, y, Color.DARK_GRAY);
                 // }
-                terminal.write(world.glyph(wx, wy), x, y, world.color(wx, wy));
+                terminal.write(world.glyph(wx, wy), x + screenFrameLeft, y + screenFrameTop, world.color(wx, wy));
             }
         }
         // Show creatures
@@ -119,7 +123,7 @@ public class PlayScreen implements Screen {
                 // if (player.canSee(creature.x(), creature.y())) {
                 //     terminal.write(creature.glyph(), creature.x() - left, creature.y() - top, creature.color());
                 // }
-                terminal.write(creature.glyph(), creature.x() - left, creature.y() - top, creature.color());
+                terminal.write(creature.glyph(), creature.x() - left + screenFrameLeft, creature.y() - top + screenFrameTop, creature.color());
             }
         }
         // Creatures can choose their next action now
@@ -143,12 +147,45 @@ public class PlayScreen implements Screen {
         // Terrain and creatures
         displayTiles(terminal, getScrollX(), getScrollY());
         // Player
-        terminal.write(player.glyph(), player.x() - getScrollX(), player.y() - getScrollY(), player.color());
+        terminal.write(player.glyph(), player.x() - getScrollX() + screenFrameLeft, player.y() - getScrollY() + screenFrameTop, player.color());
         // Stats
-        String stats = String.format("%02d/%02d keys collected.", player.score(), maxKeysNum);
-        terminal.write(stats, 0, screenHeight);
+        int statsTop = screenFrameTop + 15, statsLeft = screenWidth + screenFrameLeft + 2;
+        String stats = String.format("SCORE: %04d", player.score());
+        terminal.write(stats, statsLeft, statsTop);
+        stats = String.format("HP: %03d/%03d", player.hp(), player.maxHP());
+        terminal.write(stats, statsLeft, statsTop + 2);
+        stats = String.format("ATK: %02d", player.attackValue());
+        terminal.write(stats, statsLeft, statsTop + 4);
+        stats = String.format("DEF: %02d", player.defenseValue());
+        terminal.write(stats, statsLeft, statsTop + 6);
+        // Frame
+        Color frameColor = Color.RED;
+        char frameGlyph = (char)8;
+        Color fontColor = Color.WHITE;
+        char fontGlyph = (char)8;
+        char fontSpaceGlyph = (char)0;
+        for (int i = 0; i < App.terminalHeight; i++) {
+            terminal.write(frameGlyph, App.terminalWidth - 1, i, frameColor);
+            terminal.write(frameGlyph, 0, i, frameColor);
+        }
+        for (int i = screenFrameTop; i < App.terminalHeight; i++) {
+            terminal.write(frameGlyph, screenWidth + screenFrameLeft, i, frameColor);
+        }
+        for (int i = 0; i < App.terminalWidth; i++) {
+            terminal.write(frameGlyph, i, 0, frameColor);
+            terminal.write(frameGlyph, i, screenFrameTop - 1, frameColor);
+            terminal.write(frameGlyph, i, App.terminalHeight - 1, frameColor);
+        }
+        int fontLeft = 4, fontTop = 2;
+        // Gensoul Knight 《原 气 骑 士》
+        terminal.write("111101110100010111101111010010100001001010001011101111010010111".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop, fontColor);
+        terminal.write("100001000110010100001001010010100001010011001001001000010010010".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop + 1, fontColor);
+        terminal.write("101101110101010111101001010010100001100010101001001011011110010".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop + 2, fontColor);
+        terminal.write("100101000100110000101001010010100001010010011001001001010010010".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop + 3, fontColor);
+        terminal.write("111101110100010111101111011110111001001010001011101111010010010".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop + 4, fontColor);
+
         // Messages
-        displayMessages(terminal, this.messages);
+        // displayMessages(terminal, this.messages);
     }
 
     @Override

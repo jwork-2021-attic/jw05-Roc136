@@ -25,24 +25,34 @@ public class MonsterAI extends CreatureAI {
         }
     }
 
-    @Override
-    public void onUpdate() {
+    private boolean moveRandomly() {
         int target = random.nextInt(4);
+        boolean res = false;
         switch(target) {
             case 0:
-                creature.moveBy(0, 1);
+                res = creature.moveBy(0, 1);
                 break;
             case 1:
-                creature.moveBy(0, -1);
+                res = creature.moveBy(0, -1);
                 break;
             case 2:
-                creature.moveBy(1, 0);
+                res = creature.moveBy(1, 0);
                 break;
             case 3:
-                creature.moveBy(-1, 0);
+                res = creature.moveBy(-1, 0);
                 break;
         }
-        System.out.println("(Monster)onUpdate");
+        return res;
+    }
+
+    @Override
+    public void onUpdate() {
+        boolean flag = false;
+        if (flag) {
+            //
+        } else {
+            moveRandomly();
+        }
     }
     
 }

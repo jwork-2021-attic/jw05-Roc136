@@ -19,10 +19,12 @@ public class App extends JFrame implements KeyListener {
 
     private AsciiPanel terminal;
     private Screen screen;
+    static public int terminalHeight = 50;
+    static public int terminalWidth = 71;
 
     public App() {
         super();
-        terminal = new AsciiPanel(40, 41, AsciiFont.TALRYTH_15_15);
+        terminal = new AsciiPanel(terminalWidth, terminalHeight, AsciiFont.TALRYTH_15_15);
         add(terminal);
         pack();
         screen = new StartScreen();
@@ -62,7 +64,7 @@ public class App extends JFrame implements KeyListener {
 
     public static void main(String[] args) {
         App app = new App();
-        Thread t = new Thread(new Flasher(app, 60));
+        Thread t = new Thread(new Flasher(app, 40));
         t.start();
         app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         app.setVisible(true);

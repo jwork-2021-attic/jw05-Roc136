@@ -4,13 +4,9 @@ import java.awt.Color;
 
 public class Player extends Creature {
 
-    private int maxKeysNum;
-    private int curKeysNum;
-
-    public Player(World world, char glyph, Color color, int maxHP, int attack, int defense, int visionRadius, int maxKeysNum) {
+    public Player(World world, char glyph, Color color, int maxHP, int attack, int defense, int visionRadius) {
         super(world, glyph, color, maxHP, attack, defense, visionRadius);
-        this.maxKeysNum = maxKeysNum;
-        this.curKeysNum = 0;
+        this.score = 0;
     }
 
     @Override
@@ -26,27 +22,13 @@ public class Player extends Creature {
 
     public void pick(Creature other) {
         this.notify("You pick a %s.", other.glyph);
-        this.curKeysNum++;
+        this.score++;
         other.notify("The '%s' picks you.", glyph);
         other.modifyHP(0x8fffffff);
-    }
-
-    @Override
-    public int score() {
-        return curKeysNum;
     }
     
     @Override
     public boolean win() {
-        if (this.world.tile(x, y).isEnding()) {
-            if (this.curKeysNum == this.maxKeysNum) {
-                return true;
-            } else {
-                notify("You do not have enough keys!");
-                return false;
-            }
-        } else {
-            return false;
-        }
+        return false;
     }
 }

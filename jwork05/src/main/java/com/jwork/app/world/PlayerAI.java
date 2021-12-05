@@ -53,6 +53,6 @@ public class PlayerAI extends CreatureAI {
 
     @Override
     public void onUpdate() {
-        System.out.println("(Player)onUpdate");
+        // System.out.println("(Player)onUpdate");
     }
 }

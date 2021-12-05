@@ -33,8 +33,8 @@ public class CreatureFactory {
         this.world = world;
     }
 
-    public Creature newPlayer(List<String> messages, int maxKeysNum) {
-        Creature player = new Player(this.world, (char)2, AsciiPanel.brightWhite, 100, 20, 5, 9, maxKeysNum);
+    public Creature newPlayer(List<String> messages) {
+        Creature player = new Player(this.world, (char)2, AsciiPanel.brightWhite, 100, 20, 5, 9);
         // world.addAtEmptyLocation(player);
         world.addAtBeginning(player);
         new PlayerAI(player, messages);

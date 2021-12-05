@@ -91,8 +91,8 @@ public class World {
     }
 
     public void addAtBeginning(Creature creature) {
-        creature.setX(0);
-        creature.setY(0);
+        creature.setX(1);
+        creature.setY(1);
         this.creatures.add(creature);
     }
 

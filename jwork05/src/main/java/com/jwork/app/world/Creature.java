@@ -82,6 +82,7 @@ public class Creature extends Thread {
 
         if (this.hp < 1) {
             world.remove(this);
+            this.alive = false;
         }
     }
 
@@ -122,6 +123,7 @@ public class Creature extends Thread {
     }
 
     public boolean moveBy(int mx, int my) {
+
         Creature other = world.creature(x + mx, y + my);
 
         if (other == null) {
@@ -182,6 +184,12 @@ public class Creature extends Thread {
 
     protected int actionTime;
 
+    protected boolean alive;
+
+    public boolean alive() {
+        return alive;
+    }
+
     public Creature(World world, char glyph, Color color, int maxHP, int attack, int defense, int visionRadius) {
         this.world = world;
         this.glyph = glyph;
@@ -193,13 +201,14 @@ public class Creature extends Thread {
         this.visionRadius = visionRadius;
         this.ai = null;
         this.score = 0;
+        this.alive = true;
         this.actionTime = 500;
     }
 
     @Override
     public void run() {
         try {
-            while(true) {
+            while(alive()) {
                 update();
                 Thread.sleep(actionTime);
             }

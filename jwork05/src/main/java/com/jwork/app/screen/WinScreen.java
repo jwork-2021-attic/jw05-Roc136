@@ -17,7 +17,10 @@
  */
 package com.jwork.app.screen;
 
+import com.jwork.app.App;
 import com.jwork.app.asciiPanel.AsciiPanel;
+import java.awt.event.KeyEvent;
+import java.awt.Color;
 
 /**
  *
@@ -27,7 +30,34 @@ public class WinScreen extends RestartScreen {
 
     @Override
     public void displayOutput(AsciiPanel terminal) {
-        terminal.write("You won! Press enter to go again.", 0, 0);
+        int frameHeight = 12;
+        int frameWidth = 32;
+        int frameTop = (App.terminalHeight - frameHeight) / 2 - 1;
+        int frameLeft = (App.terminalWidth - frameWidth) / 2 - 1;
+        Color frameColor = Color.WHITE;
+        char frameGlyph = (char)8;
+        for(int i = 0; i < frameWidth; i++) {
+            terminal.write(frameGlyph, frameLeft + i + 1, frameTop, frameColor);
+            terminal.write(frameGlyph, frameLeft + i, frameTop + frameHeight, frameColor);
+        }
+        for(int i = 0; i < frameHeight; i++) {
+            terminal.write(frameGlyph, frameLeft, frameTop + i, frameColor);
+            terminal.write(frameGlyph, frameLeft + frameWidth, frameTop + i + 1, frameColor);
+        }
+
+        terminal.write("Calabash Knight", frameLeft + (frameWidth - 15) / 2, frameTop + 5);
+        terminal.write("You Win!", frameLeft + 2, frameTop + 7);
+        terminal.write("Press Enter to Restart Game...", frameLeft + 2, frameTop + 9);
+    }
+
+    @Override
+    public Screen respondToUserInput(KeyEvent key) {
+        switch (key.getKeyCode()) {
+            case KeyEvent.VK_ENTER:
+                return new StartScreen();
+            default:
+                return this;
+        }
     }
 
 }

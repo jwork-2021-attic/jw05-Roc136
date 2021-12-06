@@ -18,6 +18,7 @@
 package com.jwork.app.world;
 
 import java.awt.Color;
+import java.util.Random;
 
 /**
  *
@@ -26,6 +27,7 @@ import java.awt.Color;
 public class Creature extends Thread {
 
     protected World world;
+    protected CreatureFactory factory;
 
     protected int x;
 
@@ -81,8 +83,7 @@ public class Creature extends Thread {
         this.hp += amount;
 
         if (this.hp < 1) {
-            world.remove(this);
-            this.alive = false;
+            this.die();
         }
     }
 
@@ -110,12 +111,17 @@ public class Creature extends Thread {
         return score;
     }
 
+    public void addScore(int s) {
+        score += s;
+    }
+
     public boolean canSee(int wx, int wy) {
         return ai.canSee(wx, wy);
     }
 
     public Tile tile(int wx, int wy) {
-        return world.tile(wx, wy);
+        Tile tile = world.tile(wx, wy);
+        return tile;
     }
 
     public void dig(int wx, int wy) {
@@ -130,7 +136,6 @@ public class Creature extends Thread {
             // setFootPrints(mx, my);
             return ai.onEnter(x + mx, y + my, world.tile(x + mx, y + my));
         } else {
-            attack(other);
             return false;
         }
     }
@@ -158,7 +163,7 @@ public class Creature extends Thread {
         }
     }
 
-    public void attack(Creature other) {
+    public boolean attack(Creature other) {
         int damage = Math.max(0, this.attackValue() - other.defenseValue());
         damage = (int) (Math.random() * damage) + 1;
 
@@ -166,6 +171,53 @@ public class Creature extends Thread {
         other.notify("The '%s' attacks you for %d damage.", glyph, damage);
 
         other.modifyHP(-damage);
+        return !other.alive();
+    }
+
+    protected Random random = new Random();
+    BulletManager bulletManager;
+
+    public void shot() {
+        int xSpeed = random.nextInt(3) - 1;
+        int ySpeed = random.nextInt(3) - 1;
+        if (xSpeed == 0 && ySpeed == 0) {
+            xSpeed = 1;
+        }
+        this.shot(null, xSpeed, ySpeed);
+    }
+
+    public void shot(Creature other) {
+        int xDistance = other.x() - x;
+        int yDistance = other.y() - y;
+        int xSpeed = 0, ySpeed = 0;
+        if (xDistance == 0) {
+            ySpeed = yDistance > 0 ? 1 : -1;
+        } else if (yDistance == 0) {
+            xSpeed = xDistance > 0 ? 1 : -1;
+        } else {
+            float tan = (float)yDistance / xDistance;
+            if (tan >= -0.414 && tan <= 0.414) {
+                xSpeed = xDistance > 0 ? 1 : -1;
+            } else if ((tan > 0.414 && tan <= 2.414) || (tan < -0.414 && tan >= -2.414)) {
+                xSpeed = xDistance > 0 ? 1 : -1;
+                ySpeed = yDistance > 0 ? 1 : -1;
+            } else if (tan > 2.414 || tan < -2.414) {
+                ySpeed = yDistance > 0 ? 1 : -1;
+
+            }
+        }
+        this.shot(other, xSpeed, ySpeed);
+    }
+
+    public void shot(Creature other, int xSpeed, int ySpeed) {
+        Creature bullet = this.factory.newBullet(camp, x + xSpeed, y + ySpeed, xSpeed, ySpeed, 100, attackValue, this);
+        if (bullet != null) {
+            // bullet.start();
+            this.bulletManager.addBullet(bullet);
+        }
+        // else if(other != null && x + xSpeed == other.x() && y + ySpeed == other.y()){
+        //     this.attack(other);
+        // }
     }
 
     public void update() {
@@ -190,9 +242,22 @@ public class Creature extends Thread {
         return alive;
     }
 
-    public Creature(World world, char glyph, Color color, int maxHP, int attack, int defense, int visionRadius) {
+    protected void die() {
+        world.remove(this);
+        this.alive = false;
+    }
+
+    protected int camp; // 生物属于哪个阵营，玩家/怪物
+
+    public int camp() {
+        return camp;
+    }
+
+    public Creature(World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius) {
         this.world = world;
+        this.factory = factory;
         this.glyph = glyph;
+        this.camp = camp;
         this.color = color;
         this.maxHP = maxHP;
         this.hp = maxHP;
@@ -203,18 +268,32 @@ public class Creature extends Thread {
         this.score = 0;
         this.alive = true;
         this.actionTime = 500;
+        bulletManager = new BulletManager(this, 100);
+        bulletManager.start();
     }
+
+    // @Override
+    // public void run() {
+    //     try {
+    //         while(alive()) {
+    //             update();
+    //             Thread.sleep(actionTime);
+    //         }
+    //     
+    //     } catch (InterruptedException e) {
+    //         e.printStackTrace();
+    //     }
+    // }
 
     @Override
     public void run() {
-        try {
-            while(alive()) {
-                update();
-                Thread.sleep(actionTime);
+        long time = System.currentTimeMillis();
+        while(alive()) {
+            update();
+            while(System.currentTimeMillis() - time < actionTime) {
+                Thread.yield();
             }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            time = System.currentTimeMillis();
         }
     }
 }

@@ -42,51 +42,43 @@ public class PlayScreen implements Screen {
     private int worldWidth;
     private int worldHeight;
     private List<String> messages;
-    private List<String> oldMessages;
     private ExecutorService exec;
     private int screenFrameTop;
     private int screenFrameLeft;
-    // private MazeSolution solution;
+    private String map;
 
-    public PlayScreen() {
+    public PlayScreen(int mapSelector) {
         this.screenFrameLeft = 1;
         this.screenFrameTop = 9;
-        this.screenWidth = App.terminalWidth - 16;
-        this.screenHeight = App.terminalHeight - screenFrameTop - 1;
+        this.screenWidth = App.terminalWidth - 16; // 48
+        this.screenHeight = App.terminalHeight - screenFrameTop - 1; // 30
         this.worldWidth = screenWidth;
         this.worldHeight = screenHeight;
+        switch(mapSelector) {
+            case 0:
+                this.map = "map/map0.csv";
+                break;
+            case 1:
+                this.map = "map/map1.csv";
+                break;
+            default:
+                this.map = "map/map0.csv";
+                break;
+        }
         createWorld();
         this.messages = new ArrayList<String>();
-        this.oldMessages = new ArrayList<String>();
 
         this.exec = Executors.newCachedThreadPool();
         CreatureFactory creatureFactory = new CreatureFactory(this.world);
         createCreatures(this.exec, creatureFactory);
-
-        // int [][] maze = new int[worldWidth][worldHeight];
-        // for (int i = 0; i < worldHeight; i++) {
-        //     for (int j = 0; j < worldWidth; j++) {
-        //         if (world.tile(j, i).isGround()) {
-        //             maze[i][j] = 1;
-        //         } else {
-        //             maze[i][j] = 0;
-        //         }
-        //     }
-        // }
-        // for (Creature c: world.getCreatures()) {
-        //     if (c.glyph() == (char)13) {
-        //         maze[c.y()][c.x()] = 2;
-        //     }
-        // }
-        // this.solution = new MazeSolution(maze, maxKeysNum);
-        // this.solution.calculate();
     }
 
     private void createCreatures(ExecutorService exec, CreatureFactory creatureFactory) {
         if (world != null) {
             this.player = creatureFactory.newPlayer(this.messages);
+            this.world.setPlayer(this.player);
             exec.submit(player);
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < World.maxMonsterNum; i++) {
                 Creature monster = creatureFactory.newMonster();
                 exec.submit(monster);
             }
@@ -94,11 +86,9 @@ public class PlayScreen implements Screen {
     }
 
     private void createWorld() {
-        // world = new WorldBuilder(screenWidth, screenHeight).makeMaze().build();
-        world = new WorldBuilder(worldWidth, worldHeight).makeMap("map/map1.csv").build();
+        world = new WorldBuilder(worldWidth, worldHeight).makeMap(map).build();
         this.worldHeight = world.height();
         this.worldWidth = world.width();
-        // world = new WorldBuilder(worldWidth, worldHeight).makeMaze().build();
     }
 
     private void displayTiles(AsciiPanel terminal, int left, int top) {
@@ -107,39 +97,27 @@ public class PlayScreen implements Screen {
             for (int y = 0; y < screenHeight && y < world.height(); y++) {
                 int wx = x + left;
                 int wy = y + top;
-
-                // if (player.canSee(wx, wy)) {
-                //     terminal.write(world.glyph(wx, wy), x, y, world.color(wx, wy));
-                // } else {
-                //     terminal.write(world.glyph(wx, wy), x, y, Color.DARK_GRAY);
-                // }
-                terminal.write(world.glyph(wx, wy), x + screenFrameLeft, y + screenFrameTop, world.color(wx, wy));
+                if (world.color(wx, wy) != null) {
+                    terminal.write(world.glyph(wx, wy), x + screenFrameLeft, y + screenFrameTop, world.color(wx, wy));
+                } else {
+                    terminal.write(world.glyph(wx, wy), x + screenFrameLeft, y + screenFrameTop);
+                }
             }
         }
         // Show creatures
         for (Creature creature : world.getCreatures()) {
             if (creature.x() >= left && creature.x() < left + screenWidth && creature.y() >= top
                     && creature.y() < top + screenHeight) {
-                // if (player.canSee(creature.x(), creature.y())) {
-                //     terminal.write(creature.glyph(), creature.x() - left, creature.y() - top, creature.color());
-                // }
                 terminal.write(creature.glyph(), creature.x() - left + screenFrameLeft, creature.y() - top + screenFrameTop, creature.color());
             }
         }
-        // Creatures can choose their next action now
-        // world.update();
-    }
-
-    private void displayMessages(AsciiPanel terminal, List<String> messages) {
-        int top = this.screenHeight - messages.size();
-        for (int i = 0; i < messages.size(); i++) {
-            // 先把上一条用空格覆盖掉
-            terminal.write(String.format("%40s", " "), 0, top + i + 1);
-            // TODO 消息长度不能超过屏幕宽度，否则报错
-            terminal.write(messages.get(i), 0, top + i + 1);
+        // Show bullets
+        for (Creature bullet : world.getBullets()) {
+            if (bullet.x() >= left && bullet.x() < left + screenWidth && bullet.y() >= top
+                    && bullet.y() < top + screenHeight) {
+                terminal.write(bullet.glyph(), bullet.x() - left + screenFrameLeft, bullet.y() - top + screenFrameTop, bullet.color());
+            }
         }
-        this.oldMessages.addAll(messages);
-        messages.clear();
     }
 
     @Override
@@ -149,7 +127,7 @@ public class PlayScreen implements Screen {
         // Player
         terminal.write(player.glyph(), player.x() - getScrollX() + screenFrameLeft, player.y() - getScrollY() + screenFrameTop, player.color());
         // Stats
-        int statsTop = screenFrameTop + 15, statsLeft = screenWidth + screenFrameLeft + 2;
+        int statsTop = screenFrameTop + (screenHeight - 7 ) / 2, statsLeft = screenWidth + screenFrameLeft + 2;
         String stats = String.format("SCORE: %04d", player.score());
         terminal.write(stats, statsLeft, statsTop);
         stats = String.format("HP: %03d/%03d", player.hp(), player.maxHP());
@@ -159,11 +137,8 @@ public class PlayScreen implements Screen {
         stats = String.format("DEF: %02d", player.defenseValue());
         terminal.write(stats, statsLeft, statsTop + 6);
         // Frame
-        Color frameColor = Color.RED;
+        Color frameColor = Color.WHITE;
         char frameGlyph = (char)8;
-        Color fontColor = Color.WHITE;
-        char fontGlyph = (char)8;
-        char fontSpaceGlyph = (char)0;
         for (int i = 0; i < App.terminalHeight; i++) {
             terminal.write(frameGlyph, App.terminalWidth - 1, i, frameColor);
             terminal.write(frameGlyph, 0, i, frameColor);
@@ -176,59 +151,24 @@ public class PlayScreen implements Screen {
             terminal.write(frameGlyph, i, screenFrameTop - 1, frameColor);
             terminal.write(frameGlyph, i, App.terminalHeight - 1, frameColor);
         }
+        // Color fontColor = Color.WHITE;
+        char fontGlyph = (char)8;
+        char fontSpaceGlyph = (char)0;
         int fontLeft = 4, fontTop = 2;
-        // Gensoul Knight 《原 气 骑 士》
-        terminal.write("111101110100010111101111010010100001001010001011101111010010111".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop, fontColor);
-        terminal.write("100001000110010100001001010010100001010011001001001000010010010".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop + 1, fontColor);
-        terminal.write("101101110101010111101001010010100001100010101001001011011110010".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop + 2, fontColor);
-        terminal.write("100101000100110000101001010010100001010010011001001001010010010".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop + 3, fontColor);
-        terminal.write("111101110100010111101111011110111001001010001011101111010010010".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop + 4, fontColor);
-
-        // Messages
-        // displayMessages(terminal, this.messages);
+        // Calabash Knight 《葫 芦 骑 士》
+        terminal.write("11100100100011110111101001001001010001011101111010010111".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop);
+        terminal.write("10001010100001010100001001001010011001001001000010010010".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop + 1);
+        terminal.write("10001110100001110111101111001100010101001001011011110010".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop + 2);
+        terminal.write("10001010100001010000101001001010010011001001001010010010".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop + 3);
+        terminal.write("11101010111011110111101001001001010001011101111010010010".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop + 4);
     }
 
     @Override
     public Screen respondToUserInput(KeyEvent key) {
-        switch (key.getKeyCode()) {
-            case KeyEvent.VK_LEFT:
-                if (player.moveBy(-1, 0)) {
-                    // solution.checkStep(player.x(), player.y(), -1, 0);
-                }
-                break;
-            case KeyEvent.VK_RIGHT:
-                if (player.moveBy(1, 0)) {
-                    // solution.checkStep(player.x(), player.y(), 1, 0);
-                }
-                break;
-            case KeyEvent.VK_UP:
-                if (player.moveBy(0, -1)) {
-                    // solution.checkStep(player.x(), player.y(), 0, -1);
-                }
-                break;
-            case KeyEvent.VK_DOWN:
-                if (player.moveBy(0, 1)) {
-                    // solution.checkStep(player.x(), player.y(), 0, 1);
-                }
-                break;
-            case KeyEvent.VK_ENTER:
-                // int step = solution.getStep(player.x(), player.y());
-                // switch(step) {
-                //     case 0:
-                //         player.moveBy(0, -1);
-                //         break;
-                //     case 1:
-                //         player.moveBy(0, 1);
-                //         break;
-                //     case 2:
-                //         player.moveBy(-1, 0);
-                //         break;
-                //     case 3:
-                //         player.moveBy(1, 0);
-                //         break;
-                // }
-                break;
+        if (key.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            return new StartScreen();
         }
+        KeyEventManager.addEvent(key);
         if (player.win()) {
             return new WinScreen();
         }

@@ -26,8 +26,12 @@ import java.awt.Color;
  */
 public enum Tile {
 
-    FLOOR((char) 0, AsciiPanel.yellow),
-    WALL((char) 177, AsciiPanel.turquoise),
+    FLOOR((char) 0, AsciiPanel.yellow), // 0
+    WALL((char) 177), // 1
+    ROCK((char) 241, AsciiPanel.brightBlack), // 2
+    TREE((char) 240, AsciiPanel.green), // 3
+    GRASS((char) 242, AsciiPanel.brightGreen), // 4
+    FLOWER((char) 243, AsciiPanel.brightYellow), // 5
     BOUNDS('x', AsciiPanel.magenta),
 
     UP((char)24, AsciiPanel.brightGreen),
@@ -36,7 +40,7 @@ public enum Tile {
     LEFT((char)27, AsciiPanel.brightGreen),
 
     BEGINNING((char)6, AsciiPanel.red),
-    ENDING((char)15, AsciiPanel.green);
+    ENDING((char)15, AsciiPanel.green); // 6
 
     private char glyph;
 
@@ -55,7 +59,7 @@ public enum Tile {
     }
 
     public boolean isGround() {
-        return this != Tile.WALL && this != Tile.BOUNDS;
+        return this != Tile.WALL && this != Tile.BOUNDS && this != Tile.ROCK;
     }
 
     public boolean isBeginning() {
@@ -64,6 +68,11 @@ public enum Tile {
 
     public boolean isEnding() {
         return this == Tile.ENDING;
+    }
+
+    Tile(char glyph) {
+        this.glyph = glyph;
+        this.color = null;
     }
 
     Tile(char glyph, Color color) {

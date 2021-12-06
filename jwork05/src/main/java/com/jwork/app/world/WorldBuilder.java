@@ -42,6 +42,14 @@ public class WorldBuilder {
         return new World(tiles);
     }
 
+    public int width() {
+        return width;
+    }
+
+    public int height() {
+        return height;
+    }
+
     private WorldBuilder randomizeTiles() {
         for (int width = 0; width < this.width; width++) {
             for (int height = 0; height < this.height; height++) {
@@ -99,6 +107,21 @@ public class WorldBuilder {
                         break;
                     case 1:
                         tiles[x][y] = Tile.WALL;
+                        break;
+                    case 2:
+                        tiles[x][y] = Tile.ROCK;
+                        break;
+                    case 3:
+                        tiles[x][y] = Tile.TREE;
+                        break;
+                    case 4:
+                        tiles[x][y] = Tile.GRASS;
+                        break;
+                    case 5:
+                        tiles[x][y] = Tile.FLOWER;
+                        break;
+                    case 6:
+                        tiles[x][y] = Tile.ENDING;
                         break;
                     default:
                         tiles[x][y] = Tile.FLOOR;

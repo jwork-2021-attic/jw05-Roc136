@@ -5,11 +5,18 @@ import java.util.Random;
 public class MonsterAI extends CreatureAI {
 
     private Random random;
+    // private CreatureFactory factory;
 
     public MonsterAI(Creature creature) {
         super(creature);
         random = new Random();
     }
+
+    // public MonsterAI(Creature creature, CreatureFactory factory) {
+    //     super(creature);
+    //     random = new Random();
+    //     this.factory = factory;
+    // }
 
     @Override
     public boolean onEnter(int x, int y, Tile tile) {
@@ -47,12 +54,26 @@ public class MonsterAI extends CreatureAI {
 
     @Override
     public void onUpdate() {
+        // System.out.println("[" + Thread.currentThread().getName() + "](MonsterAI)onUpdate");
         boolean flag = false;
+        try {
+            flag = creature.canSee(creature.world.player().x(), creature.world.player().y());
+        } catch (Exception e) {
+            System.out.println("[" + Thread.currentThread().getName() + "](MonsterAI)canSee error");
+            e.printStackTrace();
+        }
         if (flag) {
-            //
-        } else {
+            // System.out.println("[" + Thread.currentThread().getName() + "](MonsterAI)send bullet");
             moveRandomly();
+            if (random.nextInt(100) < 50) {
+                creature.shot(creature.world.player());
+            }
+        } else {
+            // System.out.println("[" + Thread.currentThread().getName() + "](MonsterAI)move randomly");
+            moveRandomly();
+            if (random.nextInt(100) < 0) {
+                creature.shot();
+            }
         }
     }
-    
 }

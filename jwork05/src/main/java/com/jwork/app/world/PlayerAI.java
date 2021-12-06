@@ -18,6 +18,7 @@
 package com.jwork.app.world;
 
 import java.util.List;
+import java.awt.event.KeyEvent;
 
 /**
  *
@@ -51,8 +52,40 @@ public class PlayerAI extends CreatureAI {
         this.messages.add(message);
     }
 
+    private boolean win = false;
+
+    public boolean win() {
+        return win;
+    }
+
     @Override
     public void onUpdate() {
-        // System.out.println("(Player)onUpdate");
+        // System.out.println("[" + Thread.currentThread().getName() + "](PlayerAI)onUpdate");
+        KeyEvent key = KeyEventManager.getEvent();
+        if (key != null) {
+            switch (key.getKeyCode()) {
+                case KeyEvent.VK_LEFT: case KeyEvent.VK_A:
+                    creature.moveBy(-1, 0);
+                    break;
+                case KeyEvent.VK_RIGHT: case KeyEvent.VK_D:
+                    creature.moveBy(1, 0);
+                    break;
+                case KeyEvent.VK_UP: case KeyEvent.VK_W:
+                    creature.moveBy(0, -1);
+                    break;
+                case KeyEvent.VK_DOWN: case KeyEvent.VK_S:
+                    creature.moveBy(0, 1);
+                    break;
+                case KeyEvent.VK_ENTER: case KeyEvent.VK_J:
+                    if (creature.world.tile(creature.x(), creature.y()).isEnding()) {
+                        if (creature.score() == World.maxMonsterNum) {
+                            this.win = true;
+                        }
+                    } else {
+                        creature.shot();
+                    }
+                    break;
+            }
+        }
     }
 }

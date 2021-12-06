@@ -3,6 +3,8 @@ package com.jwork.app.world;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /*
  * Copyright (C) 2015 Aeranythe Echosong
@@ -31,6 +33,11 @@ public class World {
     private int width;
     private int height;
     private List<Creature> creatures;
+    private List<Creature> bullets;
+    private Creature player;
+    public static int maxMonsterNum = 10;
+    Lock lockForCreatureChange = new ReentrantLock();
+    Lock lockForBulletChange = new ReentrantLock();
 
     public static final int TILE_TYPES = 1;
 
@@ -39,6 +46,7 @@ public class World {
         this.width = tiles.length;
         this.height = tiles[0].length;
         this.creatures = new ArrayList<>();
+        this.bullets = new ArrayList<>();
     }
 
     public Tile tile(int x, int y) {
@@ -87,31 +95,97 @@ public class World {
         creature.setX(x);
         creature.setY(y);
 
-        this.creatures.add(creature);
+        lockForCreatureChange.lock();
+        try {
+            this.creatures.add(creature);
+        } finally {
+            lockForCreatureChange.unlock();
+        }
     }
 
     public void addAtBeginning(Creature creature) {
         creature.setX(1);
         creature.setY(1);
-        this.creatures.add(creature);
+        lockForCreatureChange.lock();
+        try {
+            this.creatures.add(creature);
+        } finally {
+            lockForCreatureChange.unlock();
+        }
     }
 
     public boolean addAtCertainLocation(Creature creature, int x, int y) {
         if (tile(x, y).isGround() || this.creature(x, y) != null) {
             creature.setX(x);
             creature.setY(y);
-            this.creatures.add(creature);
+            lockForCreatureChange.lock();
+            try {
+                this.creatures.add(creature);
+            } finally {
+                lockForCreatureChange.unlock();
+            }
             return true;
         } else {
             return false;
         }
     }
 
-    public Creature creature(int x, int y) {
-        for (Creature c : this.creatures) {
-            if (c.x() == x && c.y() == y) {
-                return c;
+    public boolean addBullletAtCertainLocation(Creature bullet, int x, int y) {
+        if (tile(x, y).isGround() || this.creature(x, y) != null) {
+            bullet.setX(x);
+            bullet.setY(y);
+            lockForBulletChange.lock();
+            try {
+                this.bullets.add(bullet);
+            } finally {
+                lockForBulletChange.unlock();
             }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void setPlayer(Creature creature) {
+        this.player = creature;
+    }
+
+    public Creature player() {
+        return this.player;
+    }
+
+    public Creature getNearlyMonster(Creature player) {
+        int minDistance2 = 0x7fffffff;
+        int x = player.x();
+        int y = player.y();
+        Creature monster = null;
+        lockForCreatureChange.lock();
+        try {
+            for(Creature c: this.creatures) {
+                if (c.camp() == 2 && player.canSee(c.x(), c.y())) {
+                    int distance2 = (x - c.x()) * (x - c.x()) + (y - c.y()) * (y - c.y());
+                    if (distance2 < minDistance2) {
+                        monster = c;
+                        minDistance2 = distance2;
+                    }
+                }
+            }
+            return monster;
+        } finally {
+            lockForCreatureChange.unlock();
+        }
+    }
+
+    public Creature creature(int x, int y) {
+        lockForCreatureChange.lock();
+        try {
+            for (Creature c : this.creatures) {
+                if (c.x() == x && c.y() == y) {
+                    return c;
+                }
+            }
+        } finally {
+            lockForCreatureChange.unlock();
         }
         return null;
     }
@@ -120,8 +194,31 @@ public class World {
         return this.creatures;
     }
 
+    public List<Creature> getBullets() {
+        lockForCreatureChange.lock();
+        try {
+            return this.bullets;
+        } finally {
+            lockForCreatureChange.unlock();
+        }
+    }
+
     public void remove(Creature target) {
-        this.creatures.remove(target);
+        lockForCreatureChange.lock();
+        try {
+            this.creatures.remove(target);
+        } finally {
+            lockForCreatureChange.unlock();
+        }
+    }
+
+    public void removeBullet(Creature target) {
+        lockForBulletChange.lock();
+        try {
+            this.bullets.remove(target);
+        } finally {
+            lockForBulletChange.unlock();
+        }
     }
 
     public void update() {

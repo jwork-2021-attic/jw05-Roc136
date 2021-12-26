@@ -1,10 +1,9 @@
 package com.jwork.app.map;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Random;
 import java.util.Stack;
 
@@ -17,7 +16,7 @@ public class MapGenerator {
     private int width;
     private int height;
     // private String mapFile = null;
-    private String mapFile = "map/map1.csv";
+    private String mapFile = "";
 
     public MapGenerator(int dim) {
         map = new int[dim][dim];
@@ -46,7 +45,10 @@ public class MapGenerator {
                 }
             }
         } else {
-            try (Reader reader = Files.newBufferedReader(Paths.get(MapGenerator.class.getClassLoader().getResource(mapFile).toURI()));
+            // try (Reader reader = Files.newBufferedReader(Paths.get(MapGenerator.class.getClassLoader().getResource(mapFile).toURI()));
+            // try (Reader reader = Files.newBufferedReader(Paths.get(mapFile));
+            try (InputStream ins = MapGenerator.class.getClassLoader().getResourceAsStream(mapFile);
+                Reader reader = new InputStreamReader(ins);
                 CSVReader csvReader = new CSVReader(reader)) {
 
                 String[] record;
@@ -70,8 +72,8 @@ public class MapGenerator {
 
             } catch (IOException | CsvValidationException ex) {
                 ex.printStackTrace();
-            } catch (URISyntaxException u) {
-                u.printStackTrace();
+            // } catch (URISyntaxException u) {
+            //     u.printStackTrace();
             }
         }
     }

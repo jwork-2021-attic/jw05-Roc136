@@ -1,9 +1,9 @@
 package com.jwork.app.world;
 
-import java.util.Random;
+// import java.util.Random;
 
 import com.jwork.app.map.MapGenerator;
-import com.jwork.app.maze.*;
+// import com.jwork.app.maze.*;
 
 /*
  * Copyright (C) 2015 s-zhouj
@@ -50,47 +50,47 @@ public class WorldBuilder {
         return height;
     }
 
-    private WorldBuilder randomizeTiles() {
-        for (int width = 0; width < this.width; width++) {
-            for (int height = 0; height < this.height; height++) {
-                Random rand = new Random();
-                switch (rand.nextInt(World.TILE_TYPES)) {
-                    case 0:
-                        tiles[width][height] = Tile.FLOOR;
-                        break;
-                    case 1:
-                        tiles[width][height] = Tile.WALL;
-                        break;
-                }
-            }
-        }
-        return this;
-    }
+    // private WorldBuilder randomizeTiles() {
+    //     for (int width = 0; width < this.width; width++) {
+    //         for (int height = 0; height < this.height; height++) {
+    //             Random rand = new Random();
+    //             switch (rand.nextInt(World.TILE_TYPES)) {
+    //                 case 0:
+    //                     tiles[width][height] = Tile.FLOOR;
+    //                     break;
+    //                 case 1:
+    //                     tiles[width][height] = Tile.WALL;
+    //                     break;
+    //             }
+    //         }
+    //     }
+    //     return this;
+    // }
 
-    private WorldBuilder mazeTiles() {
-        MazeGenerator mazeGenerator = new MazeGenerator(this.width, this.height);
-        int[][] maze;
-        while(true) {
-            mazeGenerator.generateMaze();
-            maze = mazeGenerator.getMaze();
-            if (maze[height-1][width-1] == 1) {
-                break;
-            }
-        }
-        for(int x = 0; x < width; x++) {
-            for(int y = 0; y < height; y++) {
-                switch (maze[y][x]) {
-                    case 0:
-                        tiles[x][y] = Tile.WALL;
-                        break;
-                    case 1:
-                        tiles[x][y] = Tile.FLOOR;
-                        break;
-                }
-            }
-        }
-        return this;
-    }
+    // private WorldBuilder mazeTiles() {
+    //     MazeGenerator mazeGenerator = new MazeGenerator(this.width, this.height);
+    //     int[][] maze;
+    //     while(true) {
+    //         mazeGenerator.generateMaze();
+    //         maze = mazeGenerator.getMaze();
+    //         if (maze[height-1][width-1] == 1) {
+    //             break;
+    //         }
+    //     }
+    //     for(int x = 0; x < width; x++) {
+    //         for(int y = 0; y < height; y++) {
+    //             switch (maze[y][x]) {
+    //                 case 0:
+    //                     tiles[x][y] = Tile.WALL;
+    //                     break;
+    //                 case 1:
+    //                     tiles[x][y] = Tile.FLOOR;
+    //                     break;
+    //             }
+    //         }
+    //     }
+    //     return this;
+    // }
 
     private WorldBuilder mapTiles(String mapFile) {
         MapGenerator mapGenerator = new MapGenerator(mapFile);
@@ -132,50 +132,50 @@ public class WorldBuilder {
         return this;
     }
 
-    private WorldBuilder smooth(int factor) {
-        Tile[][] newtemp = new Tile[width][height];
-        if (factor > 1) {
-            smooth(factor - 1);
-        }
-        for (int width = 0; width < this.width; width++) {
-            for (int height = 0; height < this.height; height++) {
-                // Surrounding walls and floor
-                int surrwalls = 0;
-                int surrfloor = 0;
+    // private WorldBuilder smooth(int factor) {
+    //     Tile[][] newtemp = new Tile[width][height];
+    //     if (factor > 1) {
+    //         smooth(factor - 1);
+    //     }
+    //     for (int width = 0; width < this.width; width++) {
+    //         for (int height = 0; height < this.height; height++) {
+    //             // Surrounding walls and floor
+    //             int surrwalls = 0;
+    //             int surrfloor = 0;
 
-                // Check the tiles in a 3x3 area around center tile
-                for (int dwidth = -1; dwidth < 2; dwidth++) {
-                    for (int dheight = -1; dheight < 2; dheight++) {
-                        if (width + dwidth < 0 || width + dwidth >= this.width || height + dheight < 0
-                                || height + dheight >= this.height) {
-                            continue;
-                        } else if (tiles[width + dwidth][height + dheight] == Tile.FLOOR) {
-                            surrfloor++;
-                        } else if (tiles[width + dwidth][height + dheight] == Tile.WALL) {
-                            surrwalls++;
-                        }
-                    }
-                }
-                Tile replacement;
-                if (surrwalls > surrfloor) {
-                    replacement = Tile.WALL;
-                } else {
-                    replacement = Tile.FLOOR;
-                }
-                newtemp[width][height] = replacement;
-            }
-        }
-        tiles = newtemp;
-        return this;
-    }
+    //             // Check the tiles in a 3x3 area around center tile
+    //             for (int dwidth = -1; dwidth < 2; dwidth++) {
+    //                 for (int dheight = -1; dheight < 2; dheight++) {
+    //                     if (width + dwidth < 0 || width + dwidth >= this.width || height + dheight < 0
+    //                             || height + dheight >= this.height) {
+    //                         continue;
+    //                     } else if (tiles[width + dwidth][height + dheight] == Tile.FLOOR) {
+    //                         surrfloor++;
+    //                     } else if (tiles[width + dwidth][height + dheight] == Tile.WALL) {
+    //                         surrwalls++;
+    //                     }
+    //                 }
+    //             }
+    //             Tile replacement;
+    //             if (surrwalls > surrfloor) {
+    //                 replacement = Tile.WALL;
+    //             } else {
+    //                 replacement = Tile.FLOOR;
+    //             }
+    //             newtemp[width][height] = replacement;
+    //         }
+    //     }
+    //     tiles = newtemp;
+    //     return this;
+    // }
 
-    public WorldBuilder makeCaves() {
-        return randomizeTiles().smooth(8);
-    }
+    // public WorldBuilder makeCaves() {
+    //     return randomizeTiles().smooth(8);
+    // }
 
-    public WorldBuilder makeMaze() {
-        return mazeTiles();
-    }
+    // public WorldBuilder makeMaze() {
+    //     return mazeTiles();
+    // }
 
     public WorldBuilder makeMap(String mapFile) {
         return mapTiles(mapFile);

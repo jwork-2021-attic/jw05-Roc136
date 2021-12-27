@@ -23,7 +23,7 @@ import java.awt.Point;
  *
  * @author Aeranythe Echosong
  */
-class CreatureAI {
+public class CreatureAI {
 
     protected Creature creature;
 
@@ -33,6 +33,11 @@ class CreatureAI {
     }
 
     public boolean onEnter(int x, int y, Tile tile) {
+        if (tile == Tile.BOUNDS) {
+            return false;
+        }
+        creature.setX(x);
+        creature.setY(y);
         return true;
     }
 

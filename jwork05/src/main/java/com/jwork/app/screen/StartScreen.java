@@ -19,7 +19,15 @@ package com.jwork.app.screen;
 
 import com.jwork.app.App;
 import com.jwork.app.asciiPanel.AsciiPanel;
+import com.jwork.app.map.MapEditer;
+
 import java.awt.event.KeyEvent;
+import java.io.File;
+// import java.net.JarURLConnection;
+// import java.net.URL;
+// import java.util.Enumeration;
+// import java.util.jar.JarEntry;
+// import java.util.jar.JarFile;
 import java.awt.Color;
 
 /**
@@ -28,12 +36,42 @@ import java.awt.Color;
  */
 public class StartScreen extends RestartScreen {
 
-    private int mapNum = 2;
+    private int mapNum = 0;
     private int selector = 0;
+
+    public StartScreen() {
+        File dir = new File(StartScreen.class.getClassLoader().getResource("map").getPath());
+        for (File f: dir.listFiles()) {
+            // System.out.println(f.getName());
+            if (f.isFile()) {
+                mapNum += 1;
+            }
+        }
+        // try {
+        //     URL url = StartScreen.class.getClassLoader().getResource("map");
+        //     String jarPath = url.toString();
+        //     System.out.println(jarPath);
+
+        //     URL jarURL = new URL(null, jarPath);
+        //     JarURLConnection jarCon = (JarURLConnection) jarURL.openConnection();
+        //     JarFile jarFile = jarCon.getJarFile();
+        //     Enumeration<JarEntry> jarEntrys = jarFile.entries();
+
+        //     while (jarEntrys.hasMoreElements()) {
+        //         JarEntry entry = jarEntrys.nextElement();
+        //         String name = entry.getName();
+        //         if (name.startsWith("map") && !entry.isDirectory()) {
+        //             mapNum += 1;
+        //         }
+        //     }
+        // } catch (Exception e) {
+        //     e.printStackTrace();
+        // }
+    }
 
     @Override
     public void displayOutput(AsciiPanel terminal) {
-        int frameHeight = 12;
+        int frameHeight = 10 + mapNum * 2;
         int frameWidth = 32;
         int frameTop = (App.terminalHeight - frameHeight) / 2 - 1;
         int frameLeft = (App.terminalWidth - frameWidth) / 2 - 1;
@@ -51,9 +89,11 @@ public class StartScreen extends RestartScreen {
         terminal.write("Calabash Knight", frameLeft + (frameWidth - 15) / 2, frameTop + 2);
         terminal.write("Use up/down to select map:", frameLeft + 2, frameTop + 4);
         terminal.write("Press Enter to Start Game...", frameLeft + 2, frameTop + 6);
-        for(int i = 0; i < mapNum; i++) {
+        for(int i = 0; i <= mapNum; i++) {
             if (selector == i) {
                 terminal.write(String.format("MAP-%d", i), frameLeft + (frameWidth - 5) / 2, frameTop + 8 + i * 2, Color.YELLOW);
+            } else if(i == mapNum) {
+                terminal.write(String.format("NEW MAP"), frameLeft + (frameWidth - 7) / 2, frameTop + 8 + i * 2, Color.GREEN);
             } else {
                 terminal.write(String.format("MAP-%d", i), frameLeft + (frameWidth - 5) / 2, frameTop + 8 + i * 2);
             }
@@ -62,16 +102,26 @@ public class StartScreen extends RestartScreen {
     }
 
     @Override
-    public Screen respondToUserInput(KeyEvent key) {
+    public Screen respondToUserInput(KeyEvent key){
         switch (key.getKeyCode()) {
             case KeyEvent.VK_ENTER:
-                return new PlayScreen(selector);
+                if (selector == mapNum) {
+                    return new MapEditer(selector, true);
+                } else {
+                    return new PlayScreen(selector);
+                }
             case KeyEvent.VK_UP: case KeyEvent.VK_LEFT: case KeyEvent.VK_W: case KeyEvent.VK_A:
-                selector = (selector + mapNum - 1) % mapNum;
+                selector = (selector + mapNum) % (mapNum + 1);
                 break;
             case KeyEvent.VK_DOWN: case KeyEvent.VK_RIGHT: case KeyEvent.VK_S: case KeyEvent.VK_D:
-                selector = (selector + 1) % mapNum;
+                selector = (selector + 1) % (mapNum + 1);
                 break;
+            case KeyEvent.VK_E:
+                if (selector == mapNum) {
+                    return new MapEditer(selector, true);
+                } else {
+                    return new MapEditer(selector, false);
+                }
             default:
                 break;
         }

@@ -20,7 +20,6 @@ package com.jwork.app.screen;
 import com.jwork.app.world.*;
 import com.jwork.app.App;
 import com.jwork.app.asciiPanel.AsciiPanel;
-// import com.jwork.app.maze.MazeSolution;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
@@ -35,17 +34,18 @@ import java.util.concurrent.Executors;
  */
 public class PlayScreen implements Screen {
 
-    private World world;
-    private Creature player;
-    private int screenWidth;
-    private int screenHeight;
-    private int worldWidth;
-    private int worldHeight;
-    private List<String> messages;
     private ExecutorService exec;
-    private int screenFrameTop;
-    private int screenFrameLeft;
-    private String map;
+
+    protected World world;
+    protected Creature player;
+    protected int screenWidth;
+    protected int screenHeight;
+    protected int worldWidth;
+    protected int worldHeight;
+    protected List<String> messages;
+    protected int screenFrameTop;
+    protected int screenFrameLeft;
+    protected String map;
 
     public PlayScreen(int mapSelector) {
         this.screenFrameLeft = 1;
@@ -54,23 +54,18 @@ public class PlayScreen implements Screen {
         this.screenHeight = App.terminalHeight - screenFrameTop - 1; // 30
         this.worldWidth = screenWidth;
         this.worldHeight = screenHeight;
-        switch(mapSelector) {
-            case 0:
-                this.map = "map/map0.csv";
-                break;
-            case 1:
-                this.map = "map/map1.csv";
-                break;
-            default:
-                this.map = "map/map0.csv";
-                break;
-        }
-        createWorld();
+        this.map = String.format("map/map%d.csv", mapSelector);
         this.messages = new ArrayList<String>();
+        initWorld();
+    }
+
+    protected void initWorld() {
+        createWorld();
 
         this.exec = Executors.newCachedThreadPool();
         CreatureFactory creatureFactory = new CreatureFactory(this.world);
         createCreatures(this.exec, creatureFactory);
+
     }
 
     private void createCreatures(ExecutorService exec, CreatureFactory creatureFactory) {
@@ -85,13 +80,13 @@ public class PlayScreen implements Screen {
         }
     }
 
-    private void createWorld() {
+    protected void createWorld() {
         world = new WorldBuilder(worldWidth, worldHeight).makeMap(map).build();
         this.worldHeight = world.height();
         this.worldWidth = world.width();
     }
 
-    private void displayTiles(AsciiPanel terminal, int left, int top) {
+    protected void displayTiles(AsciiPanel terminal, int left, int top) {
         // Show terrain
         for (int x = 0; x < screenWidth && x < world.width(); x++) {
             for (int y = 0; y < screenHeight && y < world.height(); y++) {
@@ -104,9 +99,12 @@ public class PlayScreen implements Screen {
                 }
             }
         }
+    }
+
+    protected void displayCreatures(AsciiPanel terminal, int left, int top) {
         // Show creatures
         for (Creature creature : world.getCreatures()) {
-            if (creature.x() >= left && creature.x() < left + screenWidth && creature.y() >= top
+            if (creature.showable() && creature.x() >= left && creature.x() < left + screenWidth && creature.y() >= top
                     && creature.y() < top + screenHeight) {
                 terminal.write(creature.glyph(), creature.x() - left + screenFrameLeft, creature.y() - top + screenFrameTop, creature.color());
             }
@@ -124,8 +122,9 @@ public class PlayScreen implements Screen {
     public void displayOutput(AsciiPanel terminal) {
         // Terrain and creatures
         displayTiles(terminal, getScrollX(), getScrollY());
+        displayCreatures(terminal, getScrollX(), getScrollY());
         // Player
-        terminal.write(player.glyph(), player.x() - getScrollX() + screenFrameLeft, player.y() - getScrollY() + screenFrameTop, player.color());
+        // terminal.write(player.glyph(), player.x() - getScrollX() + screenFrameLeft, player.y() - getScrollY() + screenFrameTop, player.color());
         // Stats
         int statsTop = screenFrameTop + (screenHeight - 7 ) / 2, statsLeft = screenWidth + screenFrameLeft + 2;
         String stats = String.format("SCORE: %04d", player.score());
@@ -165,7 +164,7 @@ public class PlayScreen implements Screen {
 
     @Override
     public Screen respondToUserInput(KeyEvent key) {
-        if (key.getKeyCode() == KeyEvent.VK_ESCAPE) {
+        if (key.getKeyCode() == KeyEvent.VK_Q) {
             return new StartScreen();
         }
         KeyEventManager.addEvent(key);

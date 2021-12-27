@@ -31,6 +31,7 @@ public class WorldBuilder {
     private int width;
     private int height;
     private Tile[][] tiles;
+    private int [][] map;
 
     public WorldBuilder(int width, int height) {
         this.width = width;
@@ -98,7 +99,7 @@ public class WorldBuilder {
         this.height = mapGenerator.getHeight();
         this.width = mapGenerator.getWidth();
         this.tiles = new Tile[width][height];
-        int [][] map = mapGenerator.getMap();
+        this.map = mapGenerator.getMap();
         for(int x = 0; x < width; x++) {
             for(int y = 0; y < height; y++) {
                 switch (map[y][x]) {
@@ -122,6 +123,9 @@ public class WorldBuilder {
                         break;
                     case 6:
                         tiles[x][y] = Tile.ENDING;
+                        break;
+                    case 7:
+                        tiles[x][y] = Tile.BEGINNING;
                         break;
                     default:
                         tiles[x][y] = Tile.FLOOR;
@@ -179,5 +183,9 @@ public class WorldBuilder {
 
     public WorldBuilder makeMap(String mapFile) {
         return mapTiles(mapFile);
+    }
+
+    public int[][] getMap() {
+        return map;
     }
 }

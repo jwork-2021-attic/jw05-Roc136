@@ -253,6 +253,10 @@ public class Creature extends Thread {
         return camp;
     }
 
+    public boolean showable() {
+        return true;
+    }
+
     public Creature(World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius) {
         this.world = world;
         this.factory = factory;

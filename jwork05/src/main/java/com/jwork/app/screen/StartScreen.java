@@ -40,38 +40,18 @@ public class StartScreen extends RestartScreen {
     private int selector = 0;
 
     public StartScreen() {
-        File dir = new File(StartScreen.class.getClassLoader().getResource("map").getPath());
+        File dir = new File("map");
         for (File f: dir.listFiles()) {
             // System.out.println(f.getName());
             if (f.isFile()) {
                 mapNum += 1;
             }
         }
-        // try {
-        //     URL url = StartScreen.class.getClassLoader().getResource("map");
-        //     String jarPath = url.toString();
-        //     System.out.println(jarPath);
-
-        //     URL jarURL = new URL(null, jarPath);
-        //     JarURLConnection jarCon = (JarURLConnection) jarURL.openConnection();
-        //     JarFile jarFile = jarCon.getJarFile();
-        //     Enumeration<JarEntry> jarEntrys = jarFile.entries();
-
-        //     while (jarEntrys.hasMoreElements()) {
-        //         JarEntry entry = jarEntrys.nextElement();
-        //         String name = entry.getName();
-        //         if (name.startsWith("map") && !entry.isDirectory()) {
-        //             mapNum += 1;
-        //         }
-        //     }
-        // } catch (Exception e) {
-        //     e.printStackTrace();
-        // }
     }
 
     @Override
     public void displayOutput(AsciiPanel terminal) {
-        int frameHeight = 10 + mapNum * 2;
+        int frameHeight = 14 + mapNum * 2;
         int frameWidth = 32;
         int frameTop = (App.terminalHeight - frameHeight) / 2 - 1;
         int frameLeft = (App.terminalWidth - frameWidth) / 2 - 1;
@@ -88,14 +68,16 @@ public class StartScreen extends RestartScreen {
 
         terminal.write("Calabash Knight", frameLeft + (frameWidth - 15) / 2, frameTop + 2);
         terminal.write("Use up/down to select map:", frameLeft + 2, frameTop + 4);
-        terminal.write("Press Enter to Start Game...", frameLeft + 2, frameTop + 6);
+        terminal.write("Press E to Edit Map", frameLeft + 2, frameTop + 6);
+        terminal.write("Press Enter to Start Game...", frameLeft + 2, frameTop + 8);
+        terminal.write("Select NEW MAP to add new map", frameLeft + 2, frameTop + 10);
         for(int i = 0; i <= mapNum; i++) {
-            if (selector == i) {
-                terminal.write(String.format("MAP-%d", i), frameLeft + (frameWidth - 5) / 2, frameTop + 8 + i * 2, Color.YELLOW);
-            } else if(i == mapNum) {
-                terminal.write(String.format("NEW MAP"), frameLeft + (frameWidth - 7) / 2, frameTop + 8 + i * 2, Color.GREEN);
+            if(i == mapNum) {
+                terminal.write(String.format("NEW MAP"), frameLeft + (frameWidth - 7) / 2, frameTop + 12 + i * 2, Color.GREEN);
+            } else if (selector == i) {
+                terminal.write(String.format("MAP-%d", i), frameLeft + (frameWidth - 5) / 2, frameTop + 12 + i * 2, Color.YELLOW);
             } else {
-                terminal.write(String.format("MAP-%d", i), frameLeft + (frameWidth - 5) / 2, frameTop + 8 + i * 2);
+                terminal.write(String.format("MAP-%d", i), frameLeft + (frameWidth - 5) / 2, frameTop + 12 + i * 2);
             }
         }
 
@@ -105,6 +87,7 @@ public class StartScreen extends RestartScreen {
     public Screen respondToUserInput(KeyEvent key){
         switch (key.getKeyCode()) {
             case KeyEvent.VK_ENTER:
+            System.out.printf("%d %d", selector, mapNum);
                 if (selector == mapNum) {
                     return new MapEditer(selector, true);
                 } else {

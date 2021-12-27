@@ -1,5 +1,6 @@
 package com.jwork.app.map;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -47,8 +48,9 @@ public class MapGenerator {
         } else {
             // try (Reader reader = Files.newBufferedReader(Paths.get(MapGenerator.class.getClassLoader().getResource(mapFile).toURI()));
             // try (Reader reader = Files.newBufferedReader(Paths.get(mapFile));
-            try (InputStream ins = MapGenerator.class.getClassLoader().getResourceAsStream(mapFile);
-                Reader reader = new InputStreamReader(ins);
+            // try (InputStream ins = MapGenerator.class.getClassLoader().getResourceAsStream(mapFile);
+            //     Reader reader = new InputStreamReader(ins);
+            try(Reader reader = new FileReader(mapFile);
                 CSVReader csvReader = new CSVReader(reader)) {
 
                 String[] record;

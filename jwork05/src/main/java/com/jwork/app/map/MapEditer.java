@@ -21,11 +21,11 @@ public class MapEditer extends PlayScreen {
     public MapEditer(int mapSelector, boolean isNew) {
         super(mapSelector);
         this.isNew = isNew;
+        createWorld();
     }
 
     @Override
     protected void initWorld() {
-        createWorld();
     }
 
     @Override
@@ -72,7 +72,8 @@ public class MapEditer extends PlayScreen {
 
     private void saveMap() {
         // System.out.println(MapEditer.class.getClassLoader().getResource(".").getPath() + "/" + map);
-        File file = new File(MapEditer.class.getClassLoader().getResource(".").getPath() + "/" + map);
+        // File file = new File(MapEditer.class.getClassLoader().getResource(".").getPath() + "/" + map);
+        File file = new File(map);
         if (!file.exists()) {
             try {
                 file.createNewFile();
@@ -81,7 +82,8 @@ public class MapEditer extends PlayScreen {
             }
         }
         try (
-            Writer writer = new FileWriter(MapEditer.class.getClassLoader().getResource(map).getPath());
+            Writer writer = new FileWriter(map);
+            // Writer writer = new FileWriter(MapEditer.class.getClassLoader().getResource(map).getPath());
             CSVWriter csvWriter = new CSVWriter(writer);
         ) {
             for (int i = 0; i < tmpMap.length; i++) {
@@ -149,7 +151,9 @@ public class MapEditer extends PlayScreen {
     public Screen respondToUserInput(KeyEvent key) {
         switch (key.getKeyCode()) {
             case KeyEvent.VK_Q:
-
+                return new StartScreen();
+            case KeyEvent.VK_X:
+                saveMap();
                 return new StartScreen();
             case KeyEvent.VK_ENTER:
                 if (world.tile(player.x(), player.y()) == Tile.ENDING) {

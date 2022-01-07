@@ -8,15 +8,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
-import java.nio.file.Files;
 
 import javax.swing.JFrame;
 
 import com.jwork.app.asciiPanel.AsciiFont;
 import com.jwork.app.asciiPanel.AsciiPanel;
-import com.jwork.app.screen.Flasher;
 import com.jwork.app.screen.Screen;
 import com.jwork.app.screen.StartScreen;
+import com.jwork.app.utils.Flasher;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 

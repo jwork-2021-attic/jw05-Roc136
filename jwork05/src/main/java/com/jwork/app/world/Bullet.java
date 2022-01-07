@@ -9,13 +9,13 @@ public class Bullet extends Creature {
     private static Lock attackLock = new ReentrantLock();
     private Creature host;
 
-    public Bullet(World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius, Creature host) {
-        super(world, factory, glyph, camp, color, maxHP, attack, defense, visionRadius);
+    public Bullet(int id, World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius, Creature host) {
+        super(id, world, factory, glyph, camp, color, maxHP, attack, defense, visionRadius);
         this.host = host;
     }
 
-    public Bullet(World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius, int actionTime, Creature host) {
-        super(world, factory, glyph, camp, color, maxHP, attack, defense, visionRadius);
+    public Bullet(int id, World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius, int actionTime, Creature host) {
+        super(id, world, factory, glyph, camp, color, maxHP, attack, defense, visionRadius);
         this.actionTime = actionTime;
         this.host = host;
     }

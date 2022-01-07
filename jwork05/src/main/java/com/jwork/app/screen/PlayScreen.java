@@ -20,9 +20,13 @@ package com.jwork.app.screen;
 import com.jwork.app.world.*;
 import com.jwork.app.App;
 import com.jwork.app.asciiPanel.AsciiPanel;
+import com.jwork.app.utils.KeyEventManager;
+import com.jwork.app.utils.Recorder;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -57,6 +61,52 @@ public class PlayScreen implements Screen {
         this.map = String.format("map/map%d.csv", mapSelector);
         this.messages = new ArrayList<String>();
         initWorld();
+    }
+
+    public PlayScreen(String file) {
+        this.screenFrameLeft = 1;
+        this.screenFrameTop = 9;
+        this.screenWidth = App.terminalWidth - 16; // 48
+        this.screenHeight = App.terminalHeight - screenFrameTop - 1; // 30
+        this.worldWidth = screenWidth;
+        this.worldHeight = screenHeight;
+        this.messages = new ArrayList<String>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line = reader.readLine();
+            String[] status = line.split(";");
+
+            this.map = String.format("map/map%d.csv", Integer.valueOf(status[0]));
+            createWorld();
+            this.exec = Executors.newCachedThreadPool();
+            CreatureFactory creatureFactory = new CreatureFactory(this.world);
+
+            // Player
+            String[] playerStatus = status[1].split(",");
+            this.player = new Player(Integer.valueOf(playerStatus[0]), this.world, creatureFactory, (char)2, 1, AsciiPanel.brightWhite, Integer.valueOf(playerStatus[4]), Integer.valueOf(playerStatus[5]), Integer.valueOf(playerStatus[6]), Integer.valueOf(playerStatus[7]), 20);
+            this.world.addAtCertainLocation(player, Integer.valueOf(playerStatus[1]), Integer.valueOf(playerStatus[2]));
+            new PlayerAI(player, messages);
+            this.world.setPlayer(this.player);
+            exec.submit(player);
+
+            // Monster
+            for (int i = 2; i < status.length; i++) {
+                String[] monsterStatus = status[i].split(",");
+                Creature monster = new Monster(Integer.valueOf(monsterStatus[0]), this.world, creatureFactory, (char)13, 2, AsciiPanel.brightRed, 5, Integer.valueOf(monsterStatus[3]), 3, 9);
+                world.addAtCertainLocation(monster, Integer.valueOf(monsterStatus[1]), Integer.valueOf(monsterStatus[2]));
+                new MonsterAI(monster);
+                exec.submit(monster);
+            }
+
+            if (file.startsWith("record", 7)) {
+                for (; (line = reader.readLine()) != null;) {
+                    System.out.println(line);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     protected void initWorld() {
@@ -126,7 +176,7 @@ public class PlayScreen implements Screen {
         // Player
         // terminal.write(player.glyph(), player.x() - getScrollX() + screenFrameLeft, player.y() - getScrollY() + screenFrameTop, player.color());
         // Stats
-        int statsTop = screenFrameTop + (screenHeight - 7 ) / 2, statsLeft = screenWidth + screenFrameLeft + 2;
+        int statsTop = screenFrameTop + (screenHeight - 13 ) / 2, statsLeft = screenWidth + screenFrameLeft + 2;
         String stats = String.format("SCORE: %04d", player.score());
         terminal.write(stats, statsLeft, statsTop);
         stats = String.format("HP: %03d/%03d", player.hp(), player.maxHP());
@@ -135,6 +185,20 @@ public class PlayScreen implements Screen {
         terminal.write(stats, statsLeft, statsTop + 4);
         stats = String.format("DEF: %02d", player.defenseValue());
         terminal.write(stats, statsLeft, statsTop + 6);
+        terminal.write("Q->quit", statsLeft, statsTop + 8);
+        terminal.write("X->Save", statsLeft, statsTop + 10);
+        if (Recorder.isRecording()) {
+            terminal.write("R->Stop", statsLeft, statsTop + 12);
+            Color tmpColor;
+            if (System.currentTimeMillis() / 500 % 2 == 1) {
+                tmpColor = Color.BLACK;
+            } else {
+                tmpColor = Color.YELLOW;
+            }
+            terminal.write("Recording..", statsLeft, statsTop + 14, Color.RED, tmpColor);
+        } else {
+            terminal.write("R->Record", statsLeft, statsTop + 12);
+        }
         // Frame
         Color frameColor = Color.WHITE;
         char frameGlyph = (char)8;
@@ -164,10 +228,20 @@ public class PlayScreen implements Screen {
 
     @Override
     public Screen respondToUserInput(KeyEvent key) {
-        if (key.getKeyCode() == KeyEvent.VK_Q) {
-            return new StartScreen();
+        switch(key.getKeyCode()) {
+            case KeyEvent.VK_Q: case KeyEvent.VK_ESCAPE:
+                return new StartScreen();
+            case KeyEvent.VK_R: // record
+                Recorder.switchStatus();
+                System.out.println("start/stop record");
+                break;
+            case KeyEvent.VK_X: // save
+                Recorder.saveStatus();
+                System.out.println("save status to disk");
+                break;
+            default:
+                KeyEventManager.addEvent(key);
         }
-        KeyEventManager.addEvent(key);
         if (player.win()) {
             return new WinScreen();
         }

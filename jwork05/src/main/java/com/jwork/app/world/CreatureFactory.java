@@ -20,6 +20,7 @@ package com.jwork.app.world;
 import java.util.List;
 
 import com.jwork.app.asciiPanel.AsciiPanel;
+import com.jwork.app.utils.RandomUtil;
 
 /**
  *
@@ -34,7 +35,7 @@ public class CreatureFactory {
     }
 
     public Creature newPlayer(List<String> messages) {
-        Creature player = new Player(this.world, this, (char)2, 1, AsciiPanel.brightWhite, 100, 20, 5, 9, 20);
+        Creature player = new Player(0, this.world, this, (char)2, 1, AsciiPanel.brightWhite, 100, 20, 5, 9, 20);
         // world.addAtEmptyLocation(player);
         world.addAtBeginning(player);
         new PlayerAI(player, messages);
@@ -42,7 +43,7 @@ public class CreatureFactory {
     }
 
     public Creature newMonster() {
-        Creature monster = new Monster(this.world, this, (char)13, 2, AsciiPanel.brightRed, 5, 5, 3, 9);
+        Creature monster = new Monster(RandomUtil.getRandom(10000, 99999), this.world, this, (char)13, 2, AsciiPanel.brightRed, 5, 5, 3, 9);
         world.addAtEmptyLocation(monster);
         new MonsterAI(monster);
         // new MonsterAI(monster, this);
@@ -50,7 +51,7 @@ public class CreatureFactory {
     }
 
     public Creature newMonster(int actionTime) {
-        Creature monster = new Monster(this.world, this, (char)13, 2, AsciiPanel.brightRed, 5, 5, 3, 9, actionTime);
+        Creature monster = new Monster(RandomUtil.getRandom(10000, 99999), this.world, this, (char)13, 2, AsciiPanel.brightRed, 5, 5, 3, 9, actionTime);
         world.addAtEmptyLocation(monster);
         new MonsterAI(monster);
         // new MonsterAI(monster, this);
@@ -58,7 +59,7 @@ public class CreatureFactory {
     }
 
     public Creature newBullet(int camp, int x, int y, int xSpeed, int ySpeed, int actionTime, int attack, Creature host) {
-        Creature bullet = new Bullet(this.world, this, (char)7, camp, AsciiPanel.brightYellow, 10000, attack, 0, 0, actionTime, host);
+        Creature bullet = new Bullet(-1, this.world, this, (char)7, camp, AsciiPanel.brightYellow, 10000, attack, 0, 0, actionTime, host);
         if (world.addBullletAtCertainLocation(bullet, x, y)) {
             new BulletAI(bullet, xSpeed, ySpeed);
             return bullet;

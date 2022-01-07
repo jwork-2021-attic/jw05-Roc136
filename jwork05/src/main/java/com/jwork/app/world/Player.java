@@ -7,13 +7,13 @@ public class Player extends Creature {
     private int xTarget = 1;
     private int yTarget = 0;
 
-    public Player(World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius) {
-        super(world, factory, glyph, camp, color, maxHP, attack, defense, visionRadius);
+    public Player(int id, World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius) {
+        super(id, world, factory, glyph, camp, color, maxHP, attack, defense, visionRadius);
         this.score = 0;
     }
 
-    public Player(World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius, int actionTime) {
-        super(world, factory, glyph, camp, color, maxHP, attack, defense, visionRadius);
+    public Player(int id, World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius, int actionTime) {
+        super(id, world, factory, glyph, camp, color, maxHP, attack, defense, visionRadius);
         this.score = 0;
         this.actionTime = actionTime;
     }

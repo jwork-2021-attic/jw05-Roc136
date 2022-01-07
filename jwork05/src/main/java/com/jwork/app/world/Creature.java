@@ -257,7 +257,14 @@ public class Creature extends Thread {
         return true;
     }
 
-    public Creature(World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius) {
+    protected int id;
+
+    public int id() {
+        return id;
+    }
+
+    public Creature(int id, World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius) {
+        this.id = id;
         this.world = world;
         this.factory = factory;
         this.glyph = glyph;

@@ -1,4 +1,4 @@
-package com.jwork.app.screen;
+package com.jwork.app.utils;
 
 import javax.swing.JFrame;
 

@@ -39,7 +39,7 @@ public class MapEditer extends PlayScreen {
         world = wb.build();
         tmpMap = wb.getMap();
         if (world != null) {
-            this.player = new Cursor(world, null, (char)2, 1, AsciiPanel.brightWhite, 100, 20, 5, 9);
+            this.player = new Cursor(0, world, null, (char)2, 1, AsciiPanel.brightWhite, 100, 20, 5, 9);
             world.addAtBeginning(player);
             new CreatureAI((Creature)player);
             // new PlayerAI(player, messages);

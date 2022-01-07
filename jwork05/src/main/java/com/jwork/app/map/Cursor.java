@@ -5,8 +5,8 @@ import com.jwork.app.world.*;
 import java.awt.Color;
 
 public class Cursor extends Player {
-    public Cursor(World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius) {
-        super(world, factory, glyph, camp, color, maxHP, attack, defense, visionRadius);
+    public Cursor(int id, World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius) {
+        super(id, world, factory, glyph, camp, color, maxHP, attack, defense, visionRadius);
     }
     
     @Override

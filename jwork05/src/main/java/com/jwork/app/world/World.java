@@ -2,7 +2,9 @@ package com.jwork.app.world;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -32,7 +34,8 @@ public class World {
     private Tile[][] tiles;
     private int width;
     private int height;
-    private List<Creature> creatures;
+    // private List<Creature> creatures;
+    private Map<Integer, Creature> creatures;
     private List<Creature> bullets;
     private Creature player;
     public static int maxMonsterNum = 10;
@@ -45,7 +48,7 @@ public class World {
         this.tiles = tiles;
         this.width = tiles.length;
         this.height = tiles[0].length;
-        this.creatures = new ArrayList<>();
+        this.creatures = new HashMap<Integer, Creature>();
         this.bullets = new ArrayList<>();
     }
 
@@ -97,7 +100,7 @@ public class World {
 
         lockForCreatureChange.lock();
         try {
-            this.creatures.add(creature);
+            this.creatures.put(creature.id(), creature);
         } finally {
             lockForCreatureChange.unlock();
         }
@@ -108,7 +111,7 @@ public class World {
         creature.setY(1);
         lockForCreatureChange.lock();
         try {
-            this.creatures.add(creature);
+            this.creatures.put(creature.id(), creature);
         } finally {
             lockForCreatureChange.unlock();
         }
@@ -120,7 +123,7 @@ public class World {
             creature.setY(y);
             lockForCreatureChange.lock();
             try {
-                this.creatures.add(creature);
+                this.creatures.put(creature.id(), creature);
             } finally {
                 lockForCreatureChange.unlock();
             }
@@ -161,7 +164,7 @@ public class World {
         Creature monster = null;
         lockForCreatureChange.lock();
         try {
-            for(Creature c: this.creatures) {
+            for(Creature c: new ArrayList<Creature>(creatures.values())) {
                 if (c.camp() == 2 && player.canSee(c.x(), c.y())) {
                     int distance2 = (x - c.x()) * (x - c.x()) + (y - c.y()) * (y - c.y());
                     if (distance2 < minDistance2) {
@@ -179,7 +182,7 @@ public class World {
     public Creature creature(int x, int y) {
         lockForCreatureChange.lock();
         try {
-            for (Creature c : this.creatures) {
+            for (Creature c : new ArrayList<Creature>(creatures.values())) {
                 if (c.x() == x && c.y() == y) {
                     return c;
                 }
@@ -190,8 +193,17 @@ public class World {
         return null;
     }
 
+    public Creature creature(Integer id) {
+        lockForCreatureChange.lock();
+        try {
+            return this.creatures.get(id);
+        } finally {
+            lockForCreatureChange.unlock();
+        }
+    }
+
     public List<Creature> getCreatures() {
-        return this.creatures;
+        return new ArrayList<Creature>(creatures.values());
     }
 
     public List<Creature> getBullets() {
@@ -206,7 +218,7 @@ public class World {
     public void remove(Creature target) {
         lockForCreatureChange.lock();
         try {
-            this.creatures.remove(target);
+            this.creatures.remove(target.id());
         } finally {
             lockForCreatureChange.unlock();
         }
@@ -222,7 +234,7 @@ public class World {
     }
 
     public void update() {
-        ArrayList<Creature> toUpdate = new ArrayList<>(this.creatures);
+        ArrayList<Creature> toUpdate = new ArrayList<Creature>(creatures.values());
 
         for (Creature creature : toUpdate) {
             creature.update();

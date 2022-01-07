@@ -20,6 +20,7 @@ package com.jwork.app.screen;
 import com.jwork.app.App;
 import com.jwork.app.asciiPanel.AsciiPanel;
 import com.jwork.app.map.MapEditer;
+import com.jwork.app.utils.RecordLoader;
 
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -37,7 +38,12 @@ import java.awt.Color;
 public class StartScreen extends RestartScreen {
 
     private int mapNum = 0;
-    private int selector = 0;
+    protected int selector = 0;
+
+    protected int frameHeight = 0;
+    protected int frameWidth = 0;
+    protected int frameTop = 0;
+    protected int frameLeft = 0;
 
     public StartScreen() {
         File dir = new File("map");
@@ -47,14 +53,13 @@ public class StartScreen extends RestartScreen {
                 mapNum += 1;
             }
         }
+        frameHeight = 16 + mapNum * 2;
+        frameWidth = 32;
+        frameTop = (App.terminalHeight - frameHeight) / 2 - 1;
+        frameLeft = (App.terminalWidth - frameWidth) / 2 - 1;
     }
 
-    @Override
-    public void displayOutput(AsciiPanel terminal) {
-        int frameHeight = 14 + mapNum * 2;
-        int frameWidth = 32;
-        int frameTop = (App.terminalHeight - frameHeight) / 2 - 1;
-        int frameLeft = (App.terminalWidth - frameWidth) / 2 - 1;
+    protected void displayFrame(AsciiPanel terminal) {
         Color frameColor = Color.WHITE;
         char frameGlyph = (char)8;
         for(int i = 0; i < frameWidth; i++) {
@@ -65,19 +70,35 @@ public class StartScreen extends RestartScreen {
             terminal.write(frameGlyph, frameLeft, frameTop + i, frameColor);
             terminal.write(frameGlyph, frameLeft + frameWidth, frameTop + i + 1, frameColor);
         }
+    }
 
+    @Override
+    public void displayOutput(AsciiPanel terminal) {
+        displayFrame(terminal);
         terminal.write("Calabash Knight", frameLeft + (frameWidth - 15) / 2, frameTop + 2);
-        terminal.write("Use up/down to select map:", frameLeft + 2, frameTop + 4);
+        terminal.write("Use W/S to select map:", frameLeft + 2, frameTop + 4);
         terminal.write("Press E to Edit Map", frameLeft + 2, frameTop + 6);
         terminal.write("Press Enter to Start Game...", frameLeft + 2, frameTop + 8);
         terminal.write("Select NEW MAP to add new map", frameLeft + 2, frameTop + 10);
-        for(int i = 0; i <= mapNum; i++) {
+        for(int i = 0; i < mapNum + 2; i++) {
             if(i == mapNum) {
-                terminal.write(String.format("NEW MAP"), frameLeft + (frameWidth - 7) / 2, frameTop + 12 + i * 2, Color.GREEN);
-            } else if (selector == i) {
-                terminal.write(String.format("MAP-%d", i), frameLeft + (frameWidth - 5) / 2, frameTop + 12 + i * 2, Color.YELLOW);
+                if (selector == i) {
+                    terminal.write(String.format("NEW MAP"), frameLeft + (frameWidth - 7) / 2, frameTop + 12 + i * 2, Color.RED, Color.YELLOW);
+                } else {
+                    terminal.write(String.format("NEW MAP"), frameLeft + (frameWidth - 7) / 2, frameTop + 12 + i * 2, Color.GREEN);
+                }
+            } else if (i == mapNum + 1) {
+                if (selector == i) {
+                    terminal.write(String.format("LOAD RECORD"), frameLeft + (frameWidth - 11) / 2, frameTop + 12 + i * 2, Color.RED, Color.YELLOW);
+                } else {
+                    terminal.write(String.format("LOAD RECORD"), frameLeft + (frameWidth - 11) / 2, frameTop + 12 + i * 2, Color.GREEN);
+                }
             } else {
-                terminal.write(String.format("MAP-%d", i), frameLeft + (frameWidth - 5) / 2, frameTop + 12 + i * 2);
+                if (selector == i) {
+                    terminal.write(String.format("MAP-%d", i), frameLeft + (frameWidth - 5) / 2, frameTop + 12 + i * 2, Color.BLACK, Color.YELLOW);
+                } else {
+                    terminal.write(String.format("MAP-%d", i), frameLeft + (frameWidth - 5) / 2, frameTop + 12 + i * 2);
+                }
             }
         }
 
@@ -87,17 +108,19 @@ public class StartScreen extends RestartScreen {
     public Screen respondToUserInput(KeyEvent key){
         switch (key.getKeyCode()) {
             case KeyEvent.VK_ENTER:
-            System.out.printf("%d %d", selector, mapNum);
+            // System.out.printf("%d %d", selector, mapNum);
                 if (selector == mapNum) {
                     return new MapEditer(selector, true);
+                } else if(selector == mapNum + 1) {
+                    return new RecordLoader();
                 } else {
                     return new PlayScreen(selector);
                 }
             case KeyEvent.VK_UP: case KeyEvent.VK_LEFT: case KeyEvent.VK_W: case KeyEvent.VK_A:
-                selector = (selector + mapNum) % (mapNum + 1);
+                selector = (selector + mapNum + 1) % (mapNum + 2);
                 break;
             case KeyEvent.VK_DOWN: case KeyEvent.VK_RIGHT: case KeyEvent.VK_S: case KeyEvent.VK_D:
-                selector = (selector + 1) % (mapNum + 1);
+                selector = (selector + 1) % (mapNum + 2);
                 break;
             case KeyEvent.VK_E:
                 if (selector == mapNum) {
@@ -105,6 +128,9 @@ public class StartScreen extends RestartScreen {
                 } else {
                     return new MapEditer(selector, false);
                 }
+            case KeyEvent.VK_Q: case KeyEvent.VK_ESCAPE:
+                System.exit(0);
+                break;
             default:
                 break;
         }

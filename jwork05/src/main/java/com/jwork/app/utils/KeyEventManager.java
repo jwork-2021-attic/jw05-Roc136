@@ -1,4 +1,4 @@
-package com.jwork.app.world;
+package com.jwork.app.utils;
 
 
 import java.awt.event.KeyEvent;
@@ -16,7 +16,9 @@ public class KeyEventManager {
     public static void addEvent(KeyEvent k) {
         KeyEventManager.keyLock.lock();
         try{
-            eventList.add(k);
+            // if (eventList.empty()) {
+                eventList.add(k);
+            // }
         } finally {
             KeyEventManager.keyLock.unlock();
         }

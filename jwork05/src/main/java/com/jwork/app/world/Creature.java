@@ -183,7 +183,7 @@ public class Creature extends Thread {
         if (xSpeed == 0 && ySpeed == 0) {
             xSpeed = 1;
         }
-        this.shot(null, xSpeed, ySpeed);
+        this.shot(xSpeed, ySpeed);
     }
 
     public void shot(Creature other) {
@@ -206,18 +206,15 @@ public class Creature extends Thread {
 
             }
         }
-        this.shot(other, xSpeed, ySpeed);
+        this.shot(xSpeed, ySpeed);
     }
 
-    public void shot(Creature other, int xSpeed, int ySpeed) {
+    public void shot(int xSpeed, int ySpeed) {
         Creature bullet = this.factory.newBullet(camp, x + xSpeed, y + ySpeed, xSpeed, ySpeed, 100, attackValue, this);
         if (bullet != null) {
             // bullet.start();
             this.bulletManager.addBullet(bullet);
         }
-        // else if(other != null && x + xSpeed == other.x() && y + ySpeed == other.y()){
-        //     this.attack(other);
-        // }
     }
 
     public void update() {

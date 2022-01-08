@@ -27,8 +27,9 @@ public class App extends JFrame implements KeyListener {
 
     private AsciiPanel terminal;
     private Screen screen;
-    static public int terminalHeight = 40;
-    static public int terminalWidth = 64;
+    static public final int terminalHeight = 40;
+    static public final int terminalWidth = 64;
+    static public final int fps = 30;
 
     public App() {
         super();
@@ -146,7 +147,7 @@ public class App extends JFrame implements KeyListener {
     public static void main(String[] args) {
         App.initMapFile();
         App app = new App();
-        Thread t = new Thread(new Flasher(app, 30));
+        Thread t = new Thread(new Flasher(app, fps));
         t.start();
         app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         app.setVisible(true);

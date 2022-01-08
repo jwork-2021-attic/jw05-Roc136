@@ -27,6 +27,7 @@ import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -50,6 +51,10 @@ public class PlayScreen implements Screen {
     protected int screenFrameTop;
     protected int screenFrameLeft;
     protected String map;
+    protected boolean needLoad;
+    protected boolean loading;
+    protected String file;
+    protected BufferedReader reader;
 
     public PlayScreen(int mapSelector) {
         this.screenFrameLeft = 1;
@@ -60,10 +65,13 @@ public class PlayScreen implements Screen {
         this.worldHeight = screenHeight;
         this.map = String.format("map/map%d.csv", mapSelector);
         this.messages = new ArrayList<String>();
+        this.needLoad = false;
+        this.file = "";
         initWorld();
     }
 
     public PlayScreen(String file) {
+        this.file = file;
         this.screenFrameLeft = 1;
         this.screenFrameTop = 9;
         this.screenWidth = App.terminalWidth - 16; // 48
@@ -71,12 +79,14 @@ public class PlayScreen implements Screen {
         this.worldWidth = screenWidth;
         this.worldHeight = screenHeight;
         this.messages = new ArrayList<String>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        try {
+            this.reader = new BufferedReader(new FileReader(file));
             String line = reader.readLine();
             String[] status = line.split(";");
 
             this.map = String.format("map/map%d.csv", Integer.valueOf(status[0]));
             createWorld();
+
             this.exec = Executors.newCachedThreadPool();
             CreatureFactory creatureFactory = new CreatureFactory(this.world);
 
@@ -86,7 +96,7 @@ public class PlayScreen implements Screen {
             this.world.addAtCertainLocation(player, Integer.valueOf(playerStatus[1]), Integer.valueOf(playerStatus[2]));
             new PlayerAI(player, messages);
             this.world.setPlayer(this.player);
-            exec.submit(player);
+            // exec.submit(player);
 
             // Monster
             for (int i = 2; i < status.length; i++) {
@@ -94,19 +104,59 @@ public class PlayScreen implements Screen {
                 Creature monster = new Monster(Integer.valueOf(monsterStatus[0]), this.world, creatureFactory, (char)13, 2, AsciiPanel.brightRed, 5, Integer.valueOf(monsterStatus[3]), 3, 9);
                 world.addAtCertainLocation(monster, Integer.valueOf(monsterStatus[1]), Integer.valueOf(monsterStatus[2]));
                 new MonsterAI(monster);
-                exec.submit(monster);
+                // exec.submit(monster);
             }
 
-            if (file.startsWith("record", 7)) {
-                for (; (line = reader.readLine()) != null;) {
-                    System.out.println(line);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (file.startsWith("record", 7)) {
+            this.needLoad = true;
+        } else {
+            this.needLoad = false;
+        }
+    }
+
+    public void loadOperationFromFile() {
+        try {
+            // Operation
+            String line = reader.readLine();
+            if (line != null) {
+                System.out.println(line);
+                String[] ops = line.split(",");
+                if (ops.length > 1) {
+                    int id = Integer.valueOf(ops[0]);
+                    int op = Integer.valueOf(ops[1]);
+                    int targetX = Integer.valueOf(ops[2]);
+                    int targetY = Integer.valueOf(ops[3]);
+                    switch (op) {
+                        case 0:
+                            world.creature(id).moveBy(targetX, targetY);
+                            break;
+                        case 1:
+                            world.creature(id).shot(targetX, targetY);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            } else {
+                try {
+                    exec.submit(this.player);
+                    for (Creature c: world.getCreatures()) {
+                        exec.submit(c);
+                    }
+                    this.needLoad = false;
+                    this.loading = false;
+                    this.reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     protected void initWorld() {
@@ -185,19 +235,23 @@ public class PlayScreen implements Screen {
         terminal.write(stats, statsLeft, statsTop + 4);
         stats = String.format("DEF: %02d", player.defenseValue());
         terminal.write(stats, statsLeft, statsTop + 6);
-        terminal.write("Q->quit", statsLeft, statsTop + 8);
-        terminal.write("X->Save", statsLeft, statsTop + 10);
-        if (Recorder.isRecording()) {
-            terminal.write("R->Stop", statsLeft, statsTop + 12);
-            Color tmpColor;
-            if (System.currentTimeMillis() / 500 % 2 == 1) {
-                tmpColor = Color.BLACK;
-            } else {
-                tmpColor = Color.YELLOW;
-            }
-            terminal.write("Recording..", statsLeft, statsTop + 14, Color.RED, tmpColor);
+        terminal.write("Q->Quit", statsLeft, statsTop + 8);
+        if (this.needLoad) {
+            terminal.write("N->Next", statsLeft, statsTop + 10);
         } else {
-            terminal.write("R->Record", statsLeft, statsTop + 12);
+            terminal.write("X->Save", statsLeft, statsTop + 10);
+            if (Recorder.isRecording()) {
+                terminal.write("R->Stop", statsLeft, statsTop + 12);
+                Color tmpColor;
+                if (System.currentTimeMillis() / 500 % 2 == 1) {
+                    tmpColor = Color.BLACK;
+                } else {
+                    tmpColor = Color.YELLOW;
+                }
+                terminal.write("Recording..", statsLeft, statsTop + 14, Color.RED, tmpColor);
+            } else {
+                terminal.write("R->Record", statsLeft, statsTop + 12);
+            }
         }
         // Frame
         Color frameColor = Color.WHITE;
@@ -228,9 +282,14 @@ public class PlayScreen implements Screen {
 
     @Override
     public Screen respondToUserInput(KeyEvent key) {
+        if (key.getKeyCode() == KeyEvent.VK_Q || key.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            return new StartScreen();
+        }
+        if (this.needLoad && key.getKeyCode() == KeyEvent.VK_N) {
+            loadOperationFromFile();
+            return this;
+        }
         switch(key.getKeyCode()) {
-            case KeyEvent.VK_Q: case KeyEvent.VK_ESCAPE:
-                return new StartScreen();
             case KeyEvent.VK_R: // record
                 Recorder.switchStatus();
                 System.out.println("start/stop record");

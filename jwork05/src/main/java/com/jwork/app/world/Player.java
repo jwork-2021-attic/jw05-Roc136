@@ -45,7 +45,7 @@ public class Player extends Creature {
         if (monster != null) {
             this.shot(monster);
         } else {
-            super.shot(null, xTarget, yTarget);
+            super.shot(xTarget, yTarget);
         }
     }
     

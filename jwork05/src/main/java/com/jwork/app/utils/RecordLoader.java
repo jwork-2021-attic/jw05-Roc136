@@ -40,9 +40,9 @@ public class RecordLoader extends StartScreen {
         terminal.write("Press Enter to Load record", frameLeft + 2, frameTop + 6);
         for(int i = 0; i < recordNum; i++) {
             if (selector == i) {
-                terminal.write(records[i].split("/")[1], frameLeft + 2, frameTop + 8 + i * 2, Color.BLACK, Color.YELLOW);
+                terminal.write(records[i], frameLeft + 2, frameTop + 8 + i * 2, Color.BLACK, Color.YELLOW);
             } else {
-                terminal.write(records[i].split("/")[1], frameLeft + 2, frameTop + 8 + i * 2, Color.WHITE);
+                terminal.write(records[i], frameLeft + 2, frameTop + 8 + i * 2, Color.WHITE);
             }
         }
     }

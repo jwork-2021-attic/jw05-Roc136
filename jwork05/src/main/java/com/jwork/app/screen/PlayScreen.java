@@ -50,6 +50,7 @@ public class PlayScreen implements Screen {
     protected List<String> messages;
     protected int screenFrameTop;
     protected int screenFrameLeft;
+    protected int mapSelector;
     protected String map;
     protected boolean needLoad;
     protected boolean loading;
@@ -63,6 +64,7 @@ public class PlayScreen implements Screen {
         this.screenHeight = App.terminalHeight - screenFrameTop - 1; // 30
         this.worldWidth = screenWidth;
         this.worldHeight = screenHeight;
+        this.mapSelector = mapSelector;
         this.map = String.format("map/map%d.csv", mapSelector);
         this.messages = new ArrayList<String>();
         this.needLoad = false;
@@ -84,7 +86,8 @@ public class PlayScreen implements Screen {
             String line = reader.readLine();
             String[] status = line.split(";");
 
-            this.map = String.format("map/map%d.csv", Integer.valueOf(status[0]));
+            this.mapSelector = Integer.valueOf(status[0]);
+            this.map = String.format("map/map%d.csv", mapSelector);
             createWorld();
 
             this.exec = Executors.newCachedThreadPool();
@@ -114,6 +117,10 @@ public class PlayScreen implements Screen {
             this.needLoad = true;
         } else {
             this.needLoad = false;
+            exec.submit(this.player);
+            for (Creature c: world.getCreatures()) {
+                exec.submit(c);
+            }
         }
     }
 
@@ -136,6 +143,8 @@ public class PlayScreen implements Screen {
                         case 1:
                             world.creature(id).shot(targetX, targetY);
                             break;
+                        case 2:
+                            world.dig(targetX, targetY);
                         default:
                             break;
                     }
@@ -239,17 +248,17 @@ public class PlayScreen implements Screen {
         if (this.needLoad) {
             terminal.write("N->Next", statsLeft, statsTop + 10);
         } else {
-            terminal.write("X->Save", statsLeft, statsTop + 10);
             if (Recorder.isRecording()) {
-                terminal.write("R->Stop", statsLeft, statsTop + 12);
+                terminal.write("R->Stop", statsLeft, statsTop + 10);
                 Color tmpColor;
                 if (System.currentTimeMillis() / 500 % 2 == 1) {
                     tmpColor = Color.BLACK;
                 } else {
                     tmpColor = Color.YELLOW;
                 }
-                terminal.write("Recording..", statsLeft, statsTop + 14, Color.RED, tmpColor);
+                terminal.write("Recording..", statsLeft, statsTop + 12, Color.RED, tmpColor);
             } else {
+                terminal.write("X->Save", statsLeft, statsTop + 10);
                 terminal.write("R->Record", statsLeft, statsTop + 12);
             }
         }
@@ -280,9 +289,23 @@ public class PlayScreen implements Screen {
         terminal.write("11101010111011110111101001001001010001011101111010010010".replace('1', fontGlyph).replace('0', fontSpaceGlyph), fontLeft, fontTop + 4);
     }
 
+    private String getStatus() {
+        String monsterStatus = "";
+        for (Creature c: this.world.getCreatures()) {
+            if (c.id() != player.id()) {
+                monsterStatus += String.format(";%d,%d,%d,%d", c.id(), c.x(), c.y(), c.hp());
+            }
+        }
+        String status = String.format("%d;%d,%d,%d,%d,%d,%d,%d,%d%s", mapSelector, this.player.id(), this.player.x(), this.player.y(), this.player.score(), this.player.hp(), this.player.attackValue(), this.player.defenseValue(), this.player.visionRadius(), monsterStatus);
+        return status;
+    }
+
     @Override
     public Screen respondToUserInput(KeyEvent key) {
         if (key.getKeyCode() == KeyEvent.VK_Q || key.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            if (Recorder.isRecording()) {
+                Recorder.endRecording();
+            }
             return new StartScreen();
         }
         if (this.needLoad && key.getKeyCode() == KeyEvent.VK_N) {
@@ -291,17 +314,24 @@ public class PlayScreen implements Screen {
         }
         switch(key.getKeyCode()) {
             case KeyEvent.VK_R: // record
-                Recorder.switchStatus();
+                if (Recorder.isRecording()) {
+                    Recorder.endRecording();
+                } else {
+                    Recorder.beginRecord("record", getStatus());
+                }
                 System.out.println("start/stop record");
                 break;
             case KeyEvent.VK_X: // save
-                Recorder.saveStatus();
+                Recorder.saveStatus(getStatus());
                 System.out.println("save status to disk");
                 break;
             default:
                 KeyEventManager.addEvent(key);
         }
         if (player.win()) {
+            if (Recorder.isRecording()) {
+                Recorder.endRecording();
+            }
             return new WinScreen();
         }
         return this;

@@ -1,11 +1,16 @@
 package com.jwork.app.utils;
 
+import java.io.BufferedWriter;
 import java.io.File;
-
-import com.jwork.app.screen.PlayScreen;
+import java.io.FileWriter;
+import java.text.SimpleDateFormat;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Recorder {
     private static boolean recording = false;
+    private static BufferedWriter writer;
+    private static Lock lock = new ReentrantLock();
 
     Recorder() {
     }
@@ -14,32 +19,45 @@ public class Recorder {
         return recording;
     }
 
-    public static void beginRecord() {
+    public static void beginRecord(String kind, String status) {
+        File dir = new File("record");
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
+        String filename = String.format("record/%s-%s.txt", kind, (new SimpleDateFormat("yyyyMMddHHmmssSSS")).format(System.currentTimeMillis()));
+        try {
+            File tmpFile = new File(filename);
+            tmpFile.createNewFile();
+            writer = new BufferedWriter(new FileWriter(filename));
+            writer.write(status);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         recording = true;
     }
 
     public static void endRecording() {
+        try {
+            writer.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         recording = false;
     }
 
-    public static void switchStatus() {
-        if (recording) {
-            endRecording();
-        } else {
-            beginRecord();
+    public static void saveStatus(String status) {
+        beginRecord("status", status);
+        endRecording();
+    }
+
+    public static void saveOperation(String operation) {
+        lock.lock();
+        try {
+            writer.write("\n" + operation);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
         }
-    }
-
-    public static void saveStatus() {
-        File file = new File("");
-        saveStatus(file);
-    }
-
-    private static void saveStatus(File file) {
-
-    }
-
-    public static PlayScreen load(String recordFile) {
-        return new PlayScreen(0);
     }
 }

@@ -2,6 +2,8 @@ package com.jwork.app.world;
 
 import java.awt.Color;
 
+import com.jwork.app.utils.Recorder;
+
 public class Player extends Creature {
 
     private int xTarget = 1;
@@ -26,9 +28,17 @@ public class Player extends Creature {
 
         if (other != null) {
             this.modifyHP(-Math.max(0, other.attackValue() - this.defenseValue()));
-            return ai.onEnter(x - mx, y - my, world.tile(x - mx, y - my)); // 反弹
+            Boolean b = ai.onEnter(x - mx, y - my, world.tile(x - mx, y - my)); // 反弹
+            if (b && Recorder.isRecording()) {
+                Recorder.saveOperation(String.format("%d,%d,%d,%d", id, 0, mx, my));
+            }
+            return b;
         } else {
-            return ai.onEnter(x + mx, y + my, world.tile(x + mx, y + my));
+            Boolean b = ai.onEnter(x + mx, y + my, world.tile(x + mx, y + my));
+            if (b && Recorder.isRecording()) {
+                Recorder.saveOperation(String.format("%d,%d,%d,%d", id, 0, mx, my));
+            }
+            return b;
         }
     }
 

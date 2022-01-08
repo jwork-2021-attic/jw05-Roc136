@@ -20,6 +20,8 @@ package com.jwork.app.world;
 import java.awt.Color;
 import java.util.Random;
 
+import com.jwork.app.utils.Recorder;
+
 /**
  *
  * @author Aeranythe Echosong
@@ -126,15 +128,20 @@ public class Creature extends Thread {
 
     public void dig(int wx, int wy) {
         world.dig(wx, wy);
+        if (Recorder.isRecording()) {
+            Recorder.saveOperation(String.format("%d,%d,%d,%d", id, 2, wx, wy));
+        }
     }
 
     public boolean moveBy(int mx, int my) {
 
         Creature other = world.creature(x + mx, y + my);
 
-        if (other == null) {
-            // setFootPrints(mx, my);
-            return ai.onEnter(x + mx, y + my, world.tile(x + mx, y + my));
+        if (other == null && ai.onEnter(x + mx, y + my, world.tile(x + mx, y + my))) {
+            if (Recorder.isRecording()) {
+                Recorder.saveOperation(String.format("%d,%d,%d,%d", id, 0, mx, my));
+            }
+            return true;
         } else {
             return false;
         }
@@ -214,6 +221,9 @@ public class Creature extends Thread {
         if (bullet != null) {
             // bullet.start();
             this.bulletManager.addBullet(bullet);
+            if (Recorder.isRecording()) {
+                Recorder.saveOperation(String.format("%d,%d,%d,%d", id, 1, xSpeed, ySpeed));
+            }
         }
     }
 

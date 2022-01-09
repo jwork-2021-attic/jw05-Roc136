@@ -72,7 +72,7 @@ public class App extends JFrame implements KeyListener {
     public void keyTyped(KeyEvent e) {
     }
 
-    private static void initMapFile() {
+    public static void initMapFile() {
         File file = new File("map");
         if (file.exists() && file.listFiles().length > 0) {
             return;
@@ -142,6 +142,10 @@ public class App extends JFrame implements KeyListener {
                 e.printStackTrace();
             }
         }
+    }
+
+    public AsciiPanel getTerminal() {
+        return terminal;
     }
 
     public static void main(String[] args) {

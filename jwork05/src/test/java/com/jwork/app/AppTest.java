@@ -1,7 +1,8 @@
 package com.jwork.app;
 
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import java.io.File;
+
 
 import org.junit.Test;
 
@@ -15,7 +16,15 @@ public class AppTest
      */
     @Test
     public void testApp() {
+        File file = new File("map");
+
+        App.initMapFile();
+        assertTrue(file.exists());
+
         App app = new App();
         assertSame(app, app);
+
+        App.initMapFile();
+        assertTrue(file.exists());
     }
 }

@@ -155,6 +155,10 @@ public class Creature extends Thread {
         }
     }
 
+    public boolean lose() {
+        return hp <= 0;
+    }
+
     protected void setFootPrints(int mx, int my) {
         if (world.tile(x, y).isBeginning() || world.tile(x, y).isEnding()) {
             return;
@@ -172,7 +176,7 @@ public class Creature extends Thread {
 
     public boolean attack(Creature other) {
         int damage = Math.max(0, this.attackValue() - other.defenseValue());
-        damage = (int) (Math.random() * damage) + 1;
+        damage = score * damage + 1;
 
         this.notify("You attack the '%s' for %d damage.", other.glyph, damage);
         other.notify("The '%s' attacks you for %d damage.", glyph, damage);
@@ -283,7 +287,7 @@ public class Creature extends Thread {
         this.defenseValue = defense;
         this.visionRadius = visionRadius;
         this.ai = null;
-        this.score = 0;
+        this.score = 1;
         this.alive = true;
         this.actionTime = 500;
         bulletManager = new BulletManager(this, 100);

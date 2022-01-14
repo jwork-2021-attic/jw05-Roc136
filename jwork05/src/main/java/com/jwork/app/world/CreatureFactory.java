@@ -22,6 +22,8 @@ import java.util.List;
 import com.jwork.app.asciiPanel.AsciiPanel;
 import com.jwork.app.utils.RandomUtil;
 
+import java.awt.Color;
+
 /**
  *
  * @author Aeranythe Echosong
@@ -32,6 +34,21 @@ public class CreatureFactory {
 
     public CreatureFactory(World world) {
         this.world = world;
+    }
+
+    public Creature newPlayer(int id, List<String> messages) {
+        Color colors[] = {Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.PINK};
+        Creature player = new Player(id, this.world, this, (char)2, id, colors[id], 10, 20, 5, 9, 20);
+        // world.addAtEmptyLocation(player);
+        int xd = 0, yd = 0;
+        boolean suc = world.addAtCertainLocation(player, (id * 13 + xd) % (world.width() - 2) + 1, (id * 11 + yd) % (world.height() - 2) + 1);
+        while(!suc) {
+            yd += (xd + 1) / world.width();
+            xd = (xd + 1) % world.width();
+            suc = world.addAtCertainLocation(player, (id * 13 + xd) % (world.width() - 2) + 1, (id * 11 + yd) % (world.height() - 2) + 1);
+        }
+        new PlayerAI(player, messages);
+        return player;
     }
 
     public Creature newPlayer(List<String> messages) {

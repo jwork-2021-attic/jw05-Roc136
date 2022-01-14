@@ -20,7 +20,7 @@ package com.jwork.app.screen;
 import com.jwork.app.world.*;
 import com.jwork.app.App;
 import com.jwork.app.asciiPanel.AsciiPanel;
-import com.jwork.app.utils.KeyEventManager;
+import com.jwork.app.utils.EventManager;
 import com.jwork.app.utils.Recorder;
 
 import java.awt.Color;
@@ -129,7 +129,7 @@ public class PlayScreen implements Screen {
             // Operation
             String line = reader.readLine();
             if (line != null) {
-                System.out.println(line);
+                // System.out.println(line);
                 String[] ops = line.split(",");
                 if (ops.length > 1) {
                     int id = Integer.valueOf(ops[0]);
@@ -179,12 +179,27 @@ public class PlayScreen implements Screen {
 
     private void createCreatures(ExecutorService exec, CreatureFactory creatureFactory) {
         if (world != null) {
-            this.player = creatureFactory.newPlayer(this.messages);
-            this.world.setPlayer(this.player);
-            exec.submit(player);
-            for (int i = 0; i < World.maxMonsterNum; i++) {
-                Creature monster = creatureFactory.newMonster();
-                exec.submit(monster);
+            // this.player = creatureFactory.newPlayer(this.messages);
+            // this.world.setPlayer(this.player);
+            // exec.submit(player);
+            if (App.isServer()) {
+                for (int i = 0; i < App.playerNum(); i++) {
+                    Creature tmp_player = creatureFactory.newPlayer(i, this.messages);
+                    if (i == 0) {
+                        this.player = tmp_player;
+                        this.world.setPlayer(this.player);
+                    }
+                    exec.submit(tmp_player);
+                }
+            } else {
+                for (int i = 0; i < App.playerNum(); i++) {
+                    Creature tmp_player = creatureFactory.newPlayer(i, this.messages);
+                    if (App.playerID() == i) {
+                        this.player = tmp_player;
+                        this.world.setPlayer(this.player);
+                    }
+                    exec.submit(tmp_player);
+                }
             }
         }
     }
@@ -326,13 +341,15 @@ public class PlayScreen implements Screen {
                 System.out.println("save status to disk");
                 break;
             default:
-                KeyEventManager.addEvent(key);
+                EventManager.addEvent(App.playerID(), key);
         }
         if (player.win()) {
             if (Recorder.isRecording()) {
                 Recorder.endRecording();
             }
             return new WinScreen();
+        } else if(player.lose() && player.id() != 0) {
+            return new LoseScreen();
         }
         return this;
     }

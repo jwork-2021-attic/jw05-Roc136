@@ -19,7 +19,8 @@ package com.jwork.app.world;
 
 import java.util.List;
 
-import com.jwork.app.utils.KeyEventManager;
+import com.jwork.app.App;
+import com.jwork.app.utils.EventManager;
 
 import java.awt.event.KeyEvent;
 
@@ -64,9 +65,9 @@ public class PlayerAI extends CreatureAI {
     @Override
     public void onUpdate() {
         // System.out.println("[" + Thread.currentThread().getName() + "](PlayerAI)onUpdate");
-        KeyEvent key = KeyEventManager.getEvent();
+        Integer key = EventManager.getEvent(creature.id());
         if (key != null) {
-            switch (key.getKeyCode()) {
+            switch (key) {
                 case KeyEvent.VK_LEFT: case KeyEvent.VK_A:
                     creature.moveBy(-1, 0);
                     break;
@@ -81,7 +82,8 @@ public class PlayerAI extends CreatureAI {
                     break;
                 case KeyEvent.VK_ENTER: case KeyEvent.VK_J:
                     if (creature.world.tile(creature.x(), creature.y()).isEnding()) {
-                        if (creature.score() == World.maxMonsterNum) {
+                        // if (creature.score() == World.maxMonsterNum) {
+                        if (creature.score() == App.playerNum()) {
                             this.win = true;
                         }
                     } else {

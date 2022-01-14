@@ -11,12 +11,10 @@ public class Player extends Creature {
 
     public Player(int id, World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius) {
         super(id, world, factory, glyph, camp, color, maxHP, attack, defense, visionRadius);
-        this.score = 0;
     }
 
     public Player(int id, World world, CreatureFactory factory, char glyph, int camp, Color color, int maxHP, int attack, int defense, int visionRadius, int actionTime) {
         super(id, world, factory, glyph, camp, color, maxHP, attack, defense, visionRadius);
-        this.score = 0;
         this.actionTime = actionTime;
     }
 

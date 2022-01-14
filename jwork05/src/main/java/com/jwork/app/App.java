@@ -15,6 +15,7 @@ import com.jwork.app.asciiPanel.AsciiFont;
 import com.jwork.app.asciiPanel.AsciiPanel;
 import com.jwork.app.screen.Screen;
 import com.jwork.app.screen.StartScreen;
+import com.jwork.app.utils.EventManager;
 import com.jwork.app.utils.Flasher;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
@@ -33,7 +34,6 @@ public class App extends JFrame implements KeyListener {
 
     public App() {
         super();
-        // terminal = new AsciiPanel(terminalWidth, terminalHeight, AsciiFont.MYUI_16_16);
         terminal = new AsciiPanel(terminalWidth, terminalHeight, AsciiFont.MYUI_15_15);
         add(terminal);
         pack();
@@ -78,16 +78,8 @@ public class App extends JFrame implements KeyListener {
             return;
         } else {
             file.mkdir();
-            // File map0 = new File(App.class.getClassLoader().getResourceAsStream("map/map0.csv").getPath());
-            // File map1 = new File(App.class.getClassLoader().getResourceAsStream("map/map1.csv").getPath());
             File new_map0 = new File("map/map0.csv");
             File new_map1 = new File("map/map1.csv");
-            // try {
-            //     Files.copy(map0.toPath(), new_map0.toPath());
-            //     Files.copy(map1.toPath(), new_map1.toPath());
-            // } catch (Exception e) {
-            //     e.printStackTrace();
-            // }
             try (
                 InputStream ins0 = App.class.getClassLoader().getResourceAsStream("map/map0.csv");
                 Reader reader0 = new InputStreamReader(ins0);
@@ -148,11 +140,87 @@ public class App extends JFrame implements KeyListener {
         return terminal;
     }
 
+    private static boolean isServer;
+
+    public static boolean isServer() {
+        return isServer;
+    }
+
+    private static int playerNum;
+
+    public static int playerNum() {
+        return playerNum;
+    }
+
+    private static int playerID;
+
+    public static int playerID() {
+        return playerID;
+    }
+
+    private static String host;
+
+    public static String host() {
+        return host;
+    }
+
     public static void main(String[] args) {
+        // for (String s: args) {
+        //     System.out.println(s);
+        // }
+        if (args.length == 0) {
+            System.out.print("请添加参数\"-s $playerNum\"或\"-c $playerID\"");
+            System.exit(-2);
+        }
+        if (args[0].equals("-s")) {
+            App.isServer = true;
+            App.host = "";
+            App.playerID = 0;
+            try {
+                App.playerNum = Integer.valueOf(args[1]);
+                if (playerNum <= 0 || playerNum > 7) {
+                    System.out.print("最大玩家数量：7");
+                    System.exit(-1);
+                }
+
+            } catch (Exception e) {
+                System.out.print("参数错误");
+                System.exit(-1);
+            }
+        } else if (args[0].equals("-c")) {
+            App.isServer = false;
+            try {
+                App.host = args[1];
+                App.playerID = Integer.valueOf(args[2]);
+                try {
+                    App.playerNum = Integer.valueOf(args[3]);
+                    if (playerID < 0 || playerID > playerNum - 1) {
+                        System.out.print("请输入正确的ID");
+                        System.exit(-1);
+                    }
+                } catch (Exception e) {
+                    System.out.print("连接服务器错误");
+                    System.exit(-1);
+                }
+            } catch (Exception e) {
+                System.out.print("参数错误");
+                System.exit(-1);
+            }
+        } else {
+            System.out.print("请添加参数\"-s $playerNum\"或\"-c $host $playerID\"");
+            System.exit(-2);
+        }
         App.initMapFile();
         App app = new App();
         Thread t = new Thread(new Flasher(app, fps));
         t.start();
+        try {
+            EventManager m = new EventManager();
+            m.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
         app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         app.setVisible(true);
     }

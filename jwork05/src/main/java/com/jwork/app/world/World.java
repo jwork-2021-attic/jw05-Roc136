@@ -165,7 +165,7 @@ public class World {
         lockForCreatureChange.lock();
         try {
             for(Creature c: new ArrayList<Creature>(creatures.values())) {
-                if (c.camp() == 2 && player.canSee(c.x(), c.y())) {
+                if (c.camp() != player.camp() && player.canSee(c.x(), c.y())) {
                     int distance2 = (x - c.x()) * (x - c.x()) + (y - c.y()) * (y - c.y());
                     if (distance2 < minDistance2) {
                         monster = c;

@@ -46,7 +46,7 @@ public class Bullet extends Creature {
             Bullet.attackLock.lock();
             try {
                 if(this.attack(other)) {
-                    this.host.addScore(1);
+                    this.host.addScore(other.score());
                 }
             } finally {
                 Bullet.attackLock.unlock();
